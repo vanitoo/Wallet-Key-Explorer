@@ -1,145 +1,160 @@
 # TODO — Wallet Key Explorer
 
-## Назначение
+## Product boundary
 
-Wallet Key Explorer — локальный офлайн-набор инструментов для анализа уже существующих **публичных** Bitcoin-объектов:
+Wallet Key Explorer is an offline toolkit for inspecting existing **public Bitcoin cryptographic objects**.
+
+Allowed domains:
 
 - extended public keys;
-- wallet descriptors;
-- multisig-конфигураций;
-- адресов;
+- output descriptors;
+- multisig policies;
+- Bitcoin addresses;
+- scripts and witness programs;
 - PSBT;
-- публичных backup packages.
+- public metadata and interoperability formats.
 
-Проект не принимает seed-фразы, mnemonic passphrase, приватные extended keys и отдельные приватные ключи.
+Forbidden domains:
 
-Wallet Explorer, Seed Explorer, Derivation Explorer, генерация адресов из seed и сравнение derivation paths перенесены в roadmap проекта **HD Wallet Explorer**.
+- mnemonic, entropy and seed;
+- private keys and private extended keys;
+- wallet creation, storage or recovery;
+- derivation-path brute force;
+- balance scanning and wallet discovery;
+- signing and broadcasting.
 
 ---
 
 ## Completed
 
-- [x] Отдельный Next.js-репозиторий
+- [x] Next.js application shell
+- [x] module-based `src/modules` architecture
+- [x] removal of legacy `src/features` implementation
 - [x] Multisig Builder
-- [x] Bitcoin Mainnet / Testnet
-- [x] N-of-M для 2–5 подписантов
-- [x] `wsh(sortedmulti(...))`
-- [x] Receive/change descriptors
-- [x] Descriptor checksum
-- [x] Demo Mode
-- [x] Base58Check-разбор extended public keys
-- [x] Проверка checksum и version bytes
-- [x] Распознавание `xpub/ypub/zpub/tpub/upub/vpub`
-- [x] Блокировка приватных extended keys
-- [x] Проверка depth, parent fingerprint, child number, chain code и public key
+- [x] P2WSH `wsh(sortedmulti(...))`
+- [x] Mainnet/Testnet policies from 2 to 5 signers
+- [x] receive/change descriptors
+- [x] Demo Mode using public test data
+- [x] Base58Check extended-key validation
+- [x] public/private extended-key type detection
+- [x] BIP-32 field inspection
 - [x] Descriptor Explorer
-- [x] BIP-48 и branch diagnostics
+- [x] Bitcoin Core descriptor checksum
+- [x] BIP-48, branch and SLIP-132 diagnostics
 - [x] Health Score
-- [x] Прямая передача descriptor из Builder в Explorer
-- [x] GitHub Actions
+- [x] direct Builder → Explorer handoff
+- [x] CI: typecheck, lint and build
+- [x] explicit public-object-only scope
 
 ---
 
-## Priority 1 — укрепление Descriptor Explorer
+## P0 — foundation and tests
 
-- [ ] Унифицировать Base58Check-проверку со всеми публичными анализаторами
-- [ ] Поддержать `sh(wsh(...))`
-- [ ] Поддержать `wpkh(...)`
-- [ ] Поддержать `sh(wpkh(...))`
-- [ ] Поддержать `tr(...)`
-- [ ] Поддержать `multi(...)`
-- [ ] Импортировать descriptor обратно в Multisig Builder
-- [ ] Распознавать receive/change пары
-- [ ] Показывать diff исходного и нормализованного descriptor
-- [ ] Добавить визуальную схему policy
+- [ ] Move reusable Base58Check/version-byte code into a shared public-object codec
+- [ ] Add parser fixtures from Bitcoin Core-compatible descriptors
+- [ ] Add unit tests for descriptor checksum
+- [ ] Add unit tests for malformed extended keys
+- [ ] Add input size limits before parsing
+- [ ] Add structured diagnostic codes in addition to human-readable messages
+- [ ] Add threat model and security checklist
+- [ ] Add architecture dependency checks to prevent feature-to-feature imports
 
-## Priority 2 — Extended Key Inspector
+## P1 — Descriptor Inspector
 
-- [ ] Отдельная вкладка Key Inspector
-- [ ] Network и version bytes
-- [ ] Depth
-- [ ] Parent fingerprint
-- [ ] Child number
-- [ ] Chain code
-- [ ] Compressed public key
-- [ ] Предполагаемый script type
-- [ ] SLIP-132 conversion с предупреждением
-- [ ] QR import/export только публичных данных
+- [ ] Support `sh(wsh(...))`
+- [ ] Support `wpkh(...)`
+- [ ] Support `sh(wpkh(...))`
+- [ ] Support `tr(...)`
+- [ ] Support `multi(...)` and `sortedmulti(...)`
+- [ ] Recognize descriptor pairs and multipath descriptors
+- [ ] Show source-versus-normalized diff
+- [ ] Display script policy tree
+- [ ] Export normalized descriptor as text/JSON
+- [ ] Import a compatible multisig descriptor into Multisig Builder
 
-## Priority 3 — Address Explorer
+## P2 — Extended Key Inspector
 
-- [ ] Проверка существующего Bitcoin address
-- [ ] Mainnet/Testnet/Regtest
-- [ ] Base58 / Bech32 / Bech32m
-- [ ] P2PKH, P2SH, P2WPKH, P2WSH, P2TR
-- [ ] Witness version и witness program
-- [ ] ScriptPubKey
-- [ ] Проверка checksum
-- [ ] Понятное объяснение формата
+- [ ] Dedicated Extended Key Inspector tab
+- [ ] Decode version bytes and network
+- [ ] Display depth, parent fingerprint and child number
+- [ ] Display chain code and compressed public key
+- [ ] Explain key origin metadata separately from the key payload
+- [ ] Detect likely SLIP-132 intent
+- [ ] Convert public prefixes with explicit compatibility warnings
+- [ ] Export analysis as JSON/TXT
+- [ ] Public-data-only QR import/export
 
-Address Explorer только анализирует введённый публичный адрес. Генерация адресов из seed относится к HD Wallet Explorer.
+## P3 — Address Inspector
 
-## Priority 4 — Multisig Backup Center
+- [ ] Mainnet/Testnet/Regtest address parsing
+- [ ] Base58Check, Bech32 and Bech32m
+- [ ] P2PKH, P2SH, P2WPKH, P2WSH and P2TR
+- [ ] checksum validation
+- [ ] witness version and witness program
+- [ ] derive scriptPubKey from the supplied address
+- [ ] detect non-standard or unsupported encodings
+- [ ] explain the decoded public structure
 
-- [ ] Название кошелька
-- [ ] Network и N-of-M policy
-- [ ] Receive/change descriptors
-- [ ] Checksums
-- [ ] Fingerprints и derivation paths
-- [ ] Extended public keys
-- [ ] Имена и роли участников
-- [ ] JSON/TXT/PDF/QR export
-- [ ] Контрольная хеш-сумма файлов
-- [ ] Импорт package обратно в приложение
-- [ ] Инструкции восстановления публичной конфигурации
+Address Inspector only analyzes an address supplied by the user. It does not derive addresses from keys or seed and does not query balances.
 
-Seed backup остаётся задачей Seed Split Tool.
+## P4 — Script Inspector
 
-## Priority 5 — экспорт в координаторы
+- [ ] Hex/script import
+- [ ] opcode disassembly
+- [ ] script type recognition
+- [ ] push-data decoding
+- [ ] witness program inspection
+- [ ] redeemScript/witnessScript analysis
+- [ ] standardness warnings
+- [ ] script hash calculation
+- [ ] scriptPubKey comparison tools
 
-- [ ] Sparrow
-- [ ] Specter Desktop
-- [ ] Nunchuk
-- [ ] BlueWallet Multisig
-- [ ] Bitcoin Core descriptors
-- [ ] Caravan
-- [ ] Не заявлять совместимость без тестов
+## P5 — PSBT Inspector
 
-## Priority 6 — PSBT Inspector
-
-Только чтение и анализ. Без подписи и broadcasting.
+Read-only analysis. No signing, finalization or broadcasting.
 
 - [ ] File/Base64/hex import
 - [ ] PSBT v0
-- [ ] PSBT v2 после стабилизации v0
-- [ ] Inputs и outputs
-- [ ] Amounts, fee и fee rate
-- [ ] Change detection
-- [ ] UTXO data
-- [ ] Derivation information
-- [ ] Required, existing и missing signatures
-- [ ] Unknown/proprietary fields
-- [ ] JSON/TXT report
+- [ ] PSBT v2
+- [ ] global/input/output maps
+- [ ] transaction inputs and outputs
+- [ ] UTXO information
+- [ ] amounts, fee and fee rate
+- [ ] BIP-32 derivation metadata
+- [ ] required, present and missing signatures
+- [ ] unknown and proprietary fields
+- [ ] duplicate/conflicting field detection
+- [ ] JSON/TXT diagnostic report
 
-## Security and quality
+## P6 — interoperability formats
 
-- [ ] Threat model
-- [ ] Security checklist для каждой новой вкладки
-- [ ] Tests для parser и validators
-- [ ] Accessibility review
-- [ ] Dependency review
-- [ ] Independent security audit
+- [ ] Bitcoin Core descriptor text
+- [ ] Sparrow public descriptor import/export
+- [ ] Specter public configuration import
+- [ ] Caravan public configuration import
+- [ ] generic JSON report schema
+- [ ] compatibility fixtures and regression tests
+- [ ] never claim compatibility without executable fixtures
 
-## Out of scope
+## Quality gates
 
-- BIP39 mnemonic и passphrase
-- entropy и wallet seed
+- [ ] parser and validator coverage targets
+- [ ] fuzz/property tests for codecs
+- [ ] accessibility review
+- [ ] dependency and supply-chain review
+- [ ] performance limits for large PSBT/script inputs
+- [ ] independent security review before 1.0
+
+## Permanently out of scope
+
+- BIP-39 mnemonic/passphrase
+- entropy and seed
 - master/private key derivation
-- xprv display
-- генерация адресов из seed
-- сравнение BIP44/BIP49/BIP84/BIP86 для одного seed
-- balance scanning и wallet discovery
-- подписание транзакций
-- broadcasting
-
-Первые шесть пунктов развиваются в **HD Wallet Explorer**. Recovery и поиск неизвестных путей относятся к **Wallet Recovery Studio**.
+- xprv and private-key handling
+- wallet/account creation
+- wallet recovery
+- derivation-path scanning
+- address generation from secrets
+- balance and transaction-history lookup
+- signing, finalization and broadcasting
+- custody, persistence or backup of wallet secrets
