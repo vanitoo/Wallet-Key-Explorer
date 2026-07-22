@@ -6,9 +6,16 @@
 
 ## [Unreleased]
 
+### Added
+
+- отдельные receive и change descriptors;
+- receive branch `/0/*`;
+- change branch `/1/*`;
+- независимое копирование каждого descriptor;
+- предупреждение о необходимости сохранять оба descriptor.
+
 ### Planned
 
-- receive и change descriptor;
 - descriptor checksum;
 - проверка совместимости key type и derivation path;
 - автоматический Health Check конфигурации.
