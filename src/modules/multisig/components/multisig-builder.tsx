@@ -8,11 +8,33 @@ type DescriptorBranch = "receive" | "change";
 type Signer = { name: string; fingerprint: string; derivation: string; xpub: string };
 type KeyStatus = { pending: boolean; error: string; prefix?: string; network?: Network; depth?: number };
 type PolicyPreset = { threshold: number; total: number; title: string; description: string };
+type MultisigBuilderProps = { onInspectDescriptor?: (descriptor: string) => void };
 
 const POLICY_PRESETS: PolicyPreset[] = [
   { threshold: 2, total: 3, title: "2 из 3", description: "Личный multisig: один ключ можно потерять" },
   { threshold: 3, total: 5, title: "3 из 5", description: "Организация: устойчивость к потере двух ключей" },
   { threshold: 2, total: 2, title: "2 из 2", description: "Совместный кошелёк: нужны оба участника" },
+];
+
+const DEMO_SIGNERS: Signer[] = [
+  {
+    name: "Demo Hardware Wallet",
+    fingerprint: "A1B2C3D4",
+    derivation: "48'/0'/0'/2'",
+    xpub: "xpub6EB6pKQpw8rkV9vSyJuYzV6vakw6hpMNM8QAnAkcKdmgZaw6anqKTEMdUyCxLDqd6s7wVcAw6z8pbHfjWuwFpSauwPpHtTik1edkbujfpcJ",
+  },
+  {
+    name: "Demo Mobile Signer",
+    fingerprint: "B2C3D4E5",
+    derivation: "48'/0'/0'/2'",
+    xpub: "xpub6F13r8guZsX5ghqgUQrqDwFi8FgMPsqxnnBouVSUdLfSUhsPHjj2fMN4bQ3GeyEqPH58WwgCNVRxMmYbMVHztjtoDVtiy9rLY94itdDowQj",
+  },
+  {
+    name: "Demo Backup Signer",
+    fingerprint: "C3D4E5F6",
+    derivation: "48'/0'/0'/2'",
+    xpub: "xpub6ENRsBZcqTQrNpY2h5LPAEjFxiuUp9noypWrmMhgFXpdBpnbQUMWRGwGuadCbKT85bzYwC731xs76cUuQKDLExtYoRo3mGCNJYF3XKK4zFL",
+  },
 ];
 
 function defaultDerivation(network: Network): string {
@@ -43,7 +65,7 @@ function validatePath(value: string): string {
   return "";
 }
 
-export function MultisigBuilder() {
+export function MultisigBuilder({ onInspectDescriptor }: MultisigBuilderProps) {
   const [network, setNetwork] = useState<Network>("mainnet");
   const [total, setTotal] = useState(3);
   const [threshold, setThreshold] = useState(2);
@@ -51,6 +73,7 @@ export function MultisigBuilder() {
   const [signers, setSigners] = useState<Signer[]>(() => Array.from({ length: 3 }, (_, index) => emptySigner(index, "mainnet")));
   const [keyStatuses, setKeyStatuses] = useState<KeyStatus[]>(() => Array.from({ length: 3 }, () => ({ pending: false, error: "Укажите extended public key" })));
   const [copiedBranch, setCopiedBranch] = useState<DescriptorBranch | null>(null);
+  const [demoMode, setDemoMode] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,11 +92,31 @@ export function MultisigBuilder() {
     setCopiedBranch(null);
   }
 
+  function loadDemoMode(): void {
+    setNetwork("mainnet");
+    setTotal(3);
+    setThreshold(2);
+    setSigners(DEMO_SIGNERS.map((signer) => ({ ...signer })));
+    setAllowSingleSignature(false);
+    setDemoMode(true);
+    resetCopied();
+  }
+
+  function clearConfiguration(): void {
+    setTotal(3);
+    setThreshold(2);
+    setSigners(Array.from({ length: 3 }, (_, index) => emptySigner(index, network)));
+    setAllowSingleSignature(false);
+    setDemoMode(false);
+    resetCopied();
+  }
+
   function changeNetwork(nextNetwork: Network): void {
     const previousDefault = defaultDerivation(network);
     const nextDefault = defaultDerivation(nextNetwork);
     setNetwork(nextNetwork);
     setSigners((current) => current.map((signer) => ({ ...signer, derivation: normalizePath(signer.derivation) === normalizePath(previousDefault) ? nextDefault : signer.derivation })));
+    setDemoMode(false);
     resetCopied();
   }
 
@@ -82,12 +125,14 @@ export function MultisigBuilder() {
     setThreshold((current) => Math.min(current, nextTotal));
     setSigners((current) => Array.from({ length: nextTotal }, (_, index) => current[index] ?? emptySigner(index, network)));
     setAllowSingleSignature(false);
+    setDemoMode(false);
     resetCopied();
   }
 
   function changeThreshold(nextThreshold: number): void {
     setThreshold(nextThreshold);
     if (nextThreshold !== 1) setAllowSingleSignature(false);
+    setDemoMode(false);
     resetCopied();
   }
 
@@ -96,11 +141,13 @@ export function MultisigBuilder() {
     setThreshold(preset.threshold);
     setSigners((current) => Array.from({ length: preset.total }, (_, index) => current[index] ?? emptySigner(index, network)));
     setAllowSingleSignature(false);
+    setDemoMode(false);
     resetCopied();
   }
 
   function updateSigner(index: number, patch: Partial<Signer>): void {
     setSigners((current) => current.map((signer, signerIndex) => signerIndex === index ? { ...signer, ...patch } : signer));
+    setDemoMode(false);
     resetCopied();
   }
 
@@ -144,6 +191,12 @@ export function MultisigBuilder() {
     setCopiedBranch(branch);
   }
 
+  function inspectDescriptor(branch: DescriptorBranch): void {
+    const descriptor = descriptors[branch];
+    if (!descriptor || !onInspectDescriptor) return;
+    onInspectDescriptor(descriptor);
+  }
+
   const emptyDescriptorMessage = singleSignatureBlocked
     ? "Подтвердите риск схемы 1-of-N"
     : "Заполните корректные публичные данные всех подписантов";
@@ -154,10 +207,19 @@ export function MultisigBuilder() {
         <div className="section-title"><span>01</span><div><h2>Политика кошелька</h2><p>Bitcoin P2WSH multisig с descriptor формата sortedmulti</p></div></div>
 
         <div className="generation-actions">
+          <button type="button" onClick={loadDemoMode}>Загрузить Demo 2 из 3</button>
+          <button type="button" onClick={clearConfiguration}>Очистить</button>
           {POLICY_PRESETS.map((preset) => (
             <button key={preset.title} type="button" onClick={() => applyPreset(preset)} title={preset.description}>{preset.title}</button>
           ))}
         </div>
+
+        {demoMode && (
+          <div className="status">
+            <strong>Demo Mode включён.</strong>
+            <p>Загружены три искусственных публичных ключа только для проверки интерфейса. Не отправляйте Bitcoin на адреса этой конфигурации.</p>
+          </div>
+        )}
 
         <div className="multisig-policy-grid">
           <label>Сеть<select value={network} onChange={(event) => changeNetwork(event.target.value as Network)}><option value="mainnet">Bitcoin Mainnet</option><option value="testnet">Bitcoin Testnet</option></select></label>
@@ -204,13 +266,19 @@ export function MultisigBuilder() {
         <div className="descriptor-output">
           <strong>Receive descriptor · /0/*</strong>
           <pre>{descriptors.receive || emptyDescriptorMessage}</pre>
-          <div className="generation-actions"><button disabled={!descriptors.receive} onClick={() => copyDescriptor("receive")}>{copiedBranch === "receive" ? "Скопировано" : "Копировать receive descriptor"}</button></div>
+          <div className="generation-actions">
+            <button disabled={!descriptors.receive} onClick={() => copyDescriptor("receive")}>{copiedBranch === "receive" ? "Скопировано" : "Копировать receive descriptor"}</button>
+            <button disabled={!descriptors.receive || !onInspectDescriptor} onClick={() => inspectDescriptor("receive")}>Проверить receive в Explorer</button>
+          </div>
         </div>
 
         <div className="descriptor-output">
           <strong>Change descriptor · /1/*</strong>
           <pre>{descriptors.change || emptyDescriptorMessage}</pre>
-          <div className="generation-actions"><button disabled={!descriptors.change} onClick={() => copyDescriptor("change")}>{copiedBranch === "change" ? "Скопировано" : "Копировать change descriptor"}</button></div>
+          <div className="generation-actions">
+            <button disabled={!descriptors.change} onClick={() => copyDescriptor("change")}>{copiedBranch === "change" ? "Скопировано" : "Копировать change descriptor"}</button>
+            <button disabled={!descriptors.change || !onInspectDescriptor} onClick={() => inspectDescriptor("change")}>Проверить change в Explorer</button>
+          </div>
         </div>
       </div>
 

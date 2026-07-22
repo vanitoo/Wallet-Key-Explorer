@@ -6,9 +6,24 @@
 
 ## [Unreleased]
 
+### Added
+
+- проверка совместимости key type с P2WSH multisig;
+- предупреждения для `ypub`, `zpub`, `upub` и `vpub` внутри `wsh(sortedmulti(...))`;
+- проверка BIP-48 P2WSH derivation path;
+- обнаружение разных account derivation paths у подписантов;
+- проверка branches `/0/*` и `/1/*`;
+- обнаружение смешанных receive/change branches;
+- отображение key type и статуса совместимости для каждого signer;
+- расширенный Health Score с учётом path, branch и SLIP-132 рисков;
+- прямая передача receive descriptor из Multisig Builder в Descriptor Explorer;
+- прямая передача change descriptor из Multisig Builder в Descriptor Explorer;
+- автоматическое переключение на вкладку Descriptor Explorer без использования буфера обмена;
+- сохранение переданного descriptor при переключении между вкладками.
+
 ### Planned
 
-- проверка совместимости key type и derivation path;
+- полная Base58Check-проверка ключей внутри Descriptor Explorer;
 - экспорт конфигурации в Sparrow;
 - поддержка дополнительных типов descriptor;
 - Wallet Explorer;
@@ -31,7 +46,9 @@
 - предупреждения для `1-of-N` и `N-of-N`;
 - компактный и форматированный вывод descriptor;
 - отдельное копирование обоих форматов;
-- отдельный модуль descriptor engine.
+- отдельный модуль descriptor engine;
+- Demo Mode с искусственной конфигурацией `2-of-3`;
+- очистка тестовой конфигурации одной кнопкой.
 
 ### Changed
 

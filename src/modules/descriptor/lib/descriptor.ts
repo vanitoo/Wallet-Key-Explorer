@@ -7,6 +7,8 @@ export type ParsedDescriptorKey = {
   path: string;
   xpub: string;
   branch: string;
+  prefix: string;
+  compatibility: "recommended" | "warning" | "unknown";
 };
 
 export type ParsedDescriptor = {
@@ -79,6 +81,26 @@ function keyNetwork(xpub: string): "mainnet" | "testnet" | "unknown" {
   return "unknown";
 }
 
+function keyPrefix(xpub: string): string {
+  return xpub.slice(0, 4).toLowerCase();
+}
+
+function keyCompatibility(prefix: string): "recommended" | "warning" | "unknown" {
+  if (prefix === "xpub" || prefix === "tpub") return "recommended";
+  if (["ypub", "zpub", "upub", "vpub"].includes(prefix)) return "warning";
+  return "unknown";
+}
+
+function normalizedPath(path: string): string {
+  return path.replace(/h/gi, "'");
+}
+
+function isBip48P2wsh(path: string, network: "mainnet" | "testnet" | "unknown"): boolean {
+  const normalized = normalizedPath(path);
+  const coin = network === "mainnet" ? "0" : network === "testnet" ? "1" : "[01]";
+  return new RegExp(`^48'/${coin}'/\\d+'/2'$`).test(normalized);
+}
+
 export function parseDescriptor(input: string): ParsedDescriptor {
   const compact = input.replace(/\s+/g, "").trim();
   if (!compact) throw new Error("Вставьте descriptor");
@@ -94,16 +116,31 @@ export function parseDescriptor(input: string): ParsedDescriptor {
   const keys = rawKeys.map((raw, index) => {
     const keyMatch = raw.match(/^\[([0-9a-fA-F]{8})\/([^\]]+)\]([^/]+)(\/.*)$/);
     if (!keyMatch) throw new Error(`Ключ ${index + 1}: ожидается [FINGERPRINT/path]xpub/branch/*`);
-    return { fingerprint: keyMatch[1].toUpperCase(), path: keyMatch[2], xpub: keyMatch[3], branch: keyMatch[4] };
+    const prefix = keyPrefix(keyMatch[3]);
+    return {
+      fingerprint: keyMatch[1].toUpperCase(),
+      path: normalizedPath(keyMatch[2]),
+      xpub: keyMatch[3],
+      branch: keyMatch[4],
+      prefix,
+      compatibility: keyCompatibility(prefix),
+    };
   });
   if (threshold < 1 || threshold > keys.length) throw new Error("Порог подписей должен быть от 1 до количества ключей");
 
   const calculatedChecksum = descriptorChecksum(body);
-  const networks = new Set(keys.map((key) => keyNetwork(key.xpub)).filter((network) => network !== "unknown"));
+  const keyNetworks = keys.map((key) => keyNetwork(key.xpub));
+  const networks = new Set(keyNetworks.filter((network) => network !== "unknown"));
   const network = networks.size > 1 ? "mixed" : networks.size === 1 ? [...networks][0] : "unknown";
   const warnings: string[] = [];
   const duplicateKeys = new Set(keys.map((key) => key.xpub)).size !== keys.length;
   const duplicateFingerprints = new Set(keys.map((key) => key.fingerprint)).size !== keys.length;
+  const pathSet = new Set(keys.map((key) => key.path));
+  const branchSet = new Set(keys.map((key) => key.branch));
+  const incompatiblePrefixes = [...new Set(keys.filter((key) => key.compatibility === "warning").map((key) => key.prefix))];
+  const nonStandardPaths = keys.filter((key, index) => !isBip48P2wsh(key.path, keyNetworks[index])).length;
+  const invalidBranches = keys.filter((key) => !/^\/[01]\/\*$/.test(key.branch)).length;
+
   if (!checksum) warnings.push("Checksum отсутствует");
   if (checksum && checksum !== calculatedChecksum) warnings.push("Checksum не совпадает");
   if (duplicateKeys) warnings.push("Обнаружены одинаковые extended public keys");
@@ -111,6 +148,11 @@ export function parseDescriptor(input: string): ParsedDescriptor {
   if (network === "mixed") warnings.push("В descriptor смешаны mainnet и testnet ключи");
   if (threshold === 1 && keys.length > 1) warnings.push("Схема 1-of-N почти не даёт преимуществ multisig");
   if (threshold === keys.length) warnings.push("Для расходования нужны все ключи");
+  if (incompatiblePrefixes.length > 0) warnings.push(`Для P2WSH multisig предпочтительны xpub/tpub; обнаружены ${incompatiblePrefixes.join(", ")}`);
+  if (nonStandardPaths > 0) warnings.push(`${nonStandardPaths} ключ(а) используют путь, отличный от BIP-48 P2WSH .../2'`);
+  if (pathSet.size > 1) warnings.push("У подписантов различаются account derivation paths");
+  if (branchSet.size > 1) warnings.push("В одном descriptor смешаны receive и change branches");
+  if (invalidBranches > 0) warnings.push("Ожидается branch /0/* или /1/*");
 
   let score = 100;
   if (!checksum) score -= 10;
@@ -119,6 +161,10 @@ export function parseDescriptor(input: string): ParsedDescriptor {
   if (duplicateFingerprints) score -= 10;
   if (network === "mixed") score -= 40;
   if (threshold === 1 && keys.length > 1) score -= 15;
+  if (incompatiblePrefixes.length > 0) score -= 15;
+  if (nonStandardPaths > 0) score -= 15;
+  if (pathSet.size > 1) score -= 10;
+  if (branchSet.size > 1 || invalidBranches > 0) score -= 20;
 
   return {
     compact: `${body}#${calculatedChecksum}`,
