@@ -1,6 +1,14 @@
+"use client";
+
+import { useState } from "react";
+import { DescriptorExplorer } from "../modules/descriptor/components/descriptor-explorer";
 import { MultisigBuilder } from "../modules/multisig/components/multisig-builder";
 
+type ActiveTab = "multisig" | "descriptor";
+
 export default function Home() {
+  const [activeTab, setActiveTab] = useState<ActiveTab>("multisig");
+
   return (
     <main className="shell">
       <section className="hero">
@@ -13,14 +21,14 @@ export default function Home() {
       </section>
 
       <div className="tabs main-tabs">
-        <button className="active">Multisig Builder</button>
+        <button className={activeTab === "multisig" ? "active" : ""} onClick={() => setActiveTab("multisig")}>Multisig Builder</button>
         <button disabled>Wallet Explorer</button>
-        <button disabled>Descriptor Explorer</button>
+        <button className={activeTab === "descriptor" ? "active" : ""} onClick={() => setActiveTab("descriptor")}>Descriptor Explorer</button>
       </div>
 
-      <MultisigBuilder />
+      {activeTab === "multisig" ? <MultisigBuilder /> : <DescriptorExplorer />}
 
-      <footer className="app-footer"><span>Wallet Key Explorer</span><span>v0.2.0 · MIT License</span></footer>
+      <footer className="app-footer"><span>Wallet Key Explorer</span><span>v0.3.0 · MIT License</span></footer>
     </main>
   );
 }
