@@ -21,10 +21,12 @@
 - отдельный receive descriptor с веткой `/0/*`
 - отдельный change descriptor с веткой `/1/*`
 - независимое копирование обоих descriptors
+- прямая передача receive или change descriptor в Descriptor Explorer без буфера обмена
 
 ### Descriptor Explorer
 
 - импорт публичного descriptor
+- получение descriptor напрямую из Multisig Builder
 - поддержка `wsh(sortedmulti(...))`
 - проверка Bitcoin Core descriptor checksum
 - автоматическое добавление или исправление checksum
@@ -84,9 +86,9 @@ npm run check     # typecheck + lint + build
 1. Откройте вкладку **Multisig Builder**.
 2. Нажмите **Загрузить Demo 2 из 3**.
 3. Дождитесь проверки трёх публичных ключей.
-4. Скопируйте receive или change descriptor.
-5. Вставьте его во вкладку **Descriptor Explorer**.
-6. Проверьте checksum, BIP-48 path, branch, key type и Health Score.
+4. Нажмите **Проверить receive в Explorer** или **Проверить change в Explorer**.
+5. Проверьте checksum, BIP-48 path, branch, key type и Health Score.
+6. Вернитесь в Multisig Builder через верхнюю вкладку — созданная конфигурация останется доступна до перезагрузки страницы.
 
 Demo-ключи являются публичными тестовыми данными. Не отправляйте средства на адреса, полученные из этой конфигурации.
 
@@ -130,13 +132,12 @@ Receive и change descriptors необходимо сохранять вмест
 
 Ближайшие этапы:
 
-1. прямая передача descriptor из Multisig Builder в Descriptor Explorer;
-2. унификация полной Base58Check-проверки внутри Descriptor Explorer;
-3. экспорт конфигурации в Sparrow;
-4. поддержка дополнительных типов descriptor;
-5. Wallet Explorer и генерация адресов;
-6. PSBT Inspector;
-7. Backup Center.
+1. унификация полной Base58Check-проверки внутри Descriptor Explorer;
+2. экспорт конфигурации в Sparrow;
+3. поддержка дополнительных типов descriptor;
+4. Wallet Explorer и генерация адресов;
+5. PSBT Inspector;
+6. Backup Center.
 
 Полный план находится в [`TODO.md`](./TODO.md). История версий находится в [`CHANGELOG.md`](./CHANGELOG.md).
 
