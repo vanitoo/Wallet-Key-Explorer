@@ -8,15 +8,19 @@
 
 ### Added
 
-- Demo Mode в Multisig Builder;
-- встроенная искусственная конфигурация `2-of-3`;
-- три валидных тестовых mainnet xpub;
-- кнопка очистки конфигурации;
-- заметное предупреждение о запрете использовать demo-ключи с реальными средствами.
+- проверка совместимости key type с P2WSH multisig;
+- предупреждения для `ypub`, `zpub`, `upub` и `vpub` внутри `wsh(sortedmulti(...))`;
+- проверка BIP-48 P2WSH derivation path;
+- обнаружение разных account derivation paths у подписантов;
+- проверка branches `/0/*` и `/1/*`;
+- обнаружение смешанных receive/change branches;
+- отображение key type и статуса совместимости для каждого signer;
+- расширенный Health Score с учётом path, branch и SLIP-132 рисков.
 
 ### Planned
 
-- проверка совместимости key type и derivation path;
+- прямая передача descriptor из Multisig Builder в Descriptor Explorer;
+- полная Base58Check-проверка ключей внутри Descriptor Explorer;
 - экспорт конфигурации в Sparrow;
 - поддержка дополнительных типов descriptor;
 - Wallet Explorer;
@@ -39,7 +43,9 @@
 - предупреждения для `1-of-N` и `N-of-N`;
 - компактный и форматированный вывод descriptor;
 - отдельное копирование обоих форматов;
-- отдельный модуль descriptor engine.
+- отдельный модуль descriptor engine;
+- Demo Mode с искусственной конфигурацией `2-of-3`;
+- очистка тестовой конфигурации одной кнопкой.
 
 ### Changed
 
