@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { validateExtendedPublicKey } from "../lib/extended-key";
 
 type Network = "mainnet" | "testnet";
+type DescriptorBranch = "receive" | "change";
 type Signer = { name: string; fingerprint: string; derivation: string; xpub: string };
 type KeyStatus = { pending: boolean; error: string; prefix?: string; network?: Network; depth?: number };
 type PolicyPreset = { threshold: number; total: number; title: string; description: string };
@@ -49,7 +50,7 @@ export function MultisigBuilder() {
   const [allowSingleSignature, setAllowSingleSignature] = useState(false);
   const [signers, setSigners] = useState<Signer[]>(() => Array.from({ length: 3 }, (_, index) => emptySigner(index, "mainnet")));
   const [keyStatuses, setKeyStatuses] = useState<KeyStatus[]>(() => Array.from({ length: 3 }, () => ({ pending: false, error: "Укажите extended public key" })));
-  const [copied, setCopied] = useState(false);
+  const [copiedBranch, setCopiedBranch] = useState<DescriptorBranch | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,12 +65,16 @@ export function MultisigBuilder() {
     return () => { cancelled = true; };
   }, [signers, network]);
 
+  function resetCopied(): void {
+    setCopiedBranch(null);
+  }
+
   function changeNetwork(nextNetwork: Network): void {
     const previousDefault = defaultDerivation(network);
     const nextDefault = defaultDerivation(nextNetwork);
     setNetwork(nextNetwork);
     setSigners((current) => current.map((signer) => ({ ...signer, derivation: normalizePath(signer.derivation) === normalizePath(previousDefault) ? nextDefault : signer.derivation })));
-    setCopied(false);
+    resetCopied();
   }
 
   function changeTotal(nextTotal: number): void {
@@ -77,13 +82,13 @@ export function MultisigBuilder() {
     setThreshold((current) => Math.min(current, nextTotal));
     setSigners((current) => Array.from({ length: nextTotal }, (_, index) => current[index] ?? emptySigner(index, network)));
     setAllowSingleSignature(false);
-    setCopied(false);
+    resetCopied();
   }
 
   function changeThreshold(nextThreshold: number): void {
     setThreshold(nextThreshold);
     if (nextThreshold !== 1) setAllowSingleSignature(false);
-    setCopied(false);
+    resetCopied();
   }
 
   function applyPreset(preset: PolicyPreset): void {
@@ -91,12 +96,12 @@ export function MultisigBuilder() {
     setThreshold(preset.threshold);
     setSigners((current) => Array.from({ length: preset.total }, (_, index) => current[index] ?? emptySigner(index, network)));
     setAllowSingleSignature(false);
-    setCopied(false);
+    resetCopied();
   }
 
   function updateSigner(index: number, patch: Partial<Signer>): void {
     setSigners((current) => current.map((signer, signerIndex) => signerIndex === index ? { ...signer, ...patch } : signer));
-    setCopied(false);
+    resetCopied();
   }
 
   const signerErrors = useMemo(() => signers.map((signer, index) => {
@@ -119,18 +124,29 @@ export function MultisigBuilder() {
 
   const singleSignatureBlocked = threshold === 1 && total > 1 && !allowSingleSignature;
   const allSignaturesRequired = threshold === total;
+  const descriptorsReady = !signerErrors.some(Boolean) && !duplicateXpubs && !singleSignatureBlocked;
 
-  const descriptor = useMemo(() => {
-    if (signerErrors.some(Boolean) || duplicateXpubs || singleSignatureBlocked) return "";
-    const keys = signers.map((signer) => `[${normalizeFingerprint(signer.fingerprint)}/${normalizePath(signer.derivation)}]${signer.xpub.trim()}/0/*`);
-    return `wsh(sortedmulti(${threshold},${keys.join(",")}))`;
-  }, [duplicateXpubs, signerErrors, signers, singleSignatureBlocked, threshold]);
+  const descriptors = useMemo(() => {
+    if (!descriptorsReady) return { receive: "", change: "" };
 
-  async function copyDescriptor(): Promise<void> {
+    const buildDescriptor = (branch: 0 | 1): string => {
+      const keys = signers.map((signer) => `[${normalizeFingerprint(signer.fingerprint)}/${normalizePath(signer.derivation)}]${signer.xpub.trim()}/${branch}/*`);
+      return `wsh(sortedmulti(${threshold},${keys.join(",")}))`;
+    };
+
+    return { receive: buildDescriptor(0), change: buildDescriptor(1) };
+  }, [descriptorsReady, signers, threshold]);
+
+  async function copyDescriptor(branch: DescriptorBranch): Promise<void> {
+    const descriptor = descriptors[branch];
     if (!descriptor) return;
     await navigator.clipboard.writeText(descriptor);
-    setCopied(true);
+    setCopiedBranch(branch);
   }
+
+  const emptyDescriptorMessage = singleSignatureBlocked
+    ? "Подтвердите риск схемы 1-of-N"
+    : "Заполните корректные публичные данные всех подписантов";
 
   return (
     <section className="workspace multisig-workspace">
@@ -183,15 +199,26 @@ export function MultisigBuilder() {
           ))}
         </div>
 
-        <div className="section-title settings-title"><span>03</span><div><h2>Wallet descriptor</h2><p>Сохраните его вместе с fingerprints, путями и xpub всех участников</p></div></div>
-        <div className="descriptor-output"><pre>{descriptor || (singleSignatureBlocked ? "Подтвердите риск схемы 1-of-N" : "Заполните корректные публичные данные всех подписантов")}</pre><div className="generation-actions"><button disabled={!descriptor} onClick={copyDescriptor}>{copied ? "Скопировано" : "Копировать descriptor"}</button></div></div>
+        <div className="section-title settings-title"><span>03</span><div><h2>Wallet descriptors</h2><p>Receive и change descriptors необходимо сохранять вместе</p></div></div>
+
+        <div className="descriptor-output">
+          <strong>Receive descriptor · /0/*</strong>
+          <pre>{descriptors.receive || emptyDescriptorMessage}</pre>
+          <div className="generation-actions"><button disabled={!descriptors.receive} onClick={() => copyDescriptor("receive")}>{copiedBranch === "receive" ? "Скопировано" : "Копировать receive descriptor"}</button></div>
+        </div>
+
+        <div className="descriptor-output">
+          <strong>Change descriptor · /1/*</strong>
+          <pre>{descriptors.change || emptyDescriptorMessage}</pre>
+          <div className="generation-actions"><button disabled={!descriptors.change} onClick={() => copyDescriptor("change")}>{copiedBranch === "change" ? "Скопировано" : "Копировать change descriptor"}</button></div>
+        </div>
       </div>
 
       <aside className="panel algorithm-panel">
         <div className="algorithm-symbol">⌘</div><h3>{threshold} из {total}</h3>
-        <ul className="check-list"><li>Base58Check checksum проверяется</li><li>Сеть определяется из version bytes</li><li>Приватные extended keys блокируются</li><li>{allSignaturesRequired ? "Потеря одного ключа блокирует кошелёк" : `Можно потерять ${total - threshold} ключ${total - threshold === 1 ? "" : "а"}`}</li></ul>
+        <ul className="check-list"><li>Base58Check checksum проверяется</li><li>Receive использует ветку /0/*</li><li>Change использует ветку /1/*</li><li>{allSignaturesRequired ? "Потеря одного ключа блокирует кошелёк" : `Можно потерять ${total - threshold} ключ${total - threshold === 1 ? "" : "а"}`}</li></ul>
         <div className="algorithm-metrics"><div><span>Порог</span><strong>{threshold}</strong></div><div><span>Ключей</span><strong>{total}</strong></div></div>
-        <div className="multisig-warning"><strong>Важно</strong><p>Fingerprint нельзя криптографически связать с account xpub без master public key. Корректный формат не доказывает происхождение ключа.</p></div>
+        <div className="multisig-warning"><strong>Важно</strong><p>Сохраняйте оба descriptor. Без change descriptor кошелёк может некорректно распознавать сдачу при восстановлении.</p></div>
         <div className="flow-diagram"><span>{total} независимых ключа</span><b>↓</b><span>{threshold} подписей</span><b>↓</b><span>P2WSH multisig</span></div>
       </aside>
     </section>
