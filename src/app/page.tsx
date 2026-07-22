@@ -20,7 +20,7 @@ export default function Home() {
 
       <MultisigBuilder />
 
-      <footer className="app-footer"><span>Wallet Key Explorer</span><span>v0.1.0 · MIT License</span></footer>
+      <footer className="app-footer"><span>Wallet Key Explorer</span><span>v0.2.0 · MIT License</span></footer>
     </main>
   );
 }

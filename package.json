@@ -1,6 +1,6 @@
 {
   "name": "wallet-key-explorer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Offline Bitcoin wallet key and multisig descriptor exploration tools.",
   "scripts": {
