@@ -2,7 +2,7 @@
 
 Локальный офлайн-набор инструментов для анализа публичных Bitcoin-ключей, wallet descriptor и multisig-конфигураций.
 
-> Текущая версия: **v0.2.0 — Multisig validation**
+> Текущая версия: **v0.3.0 — Descriptor Explorer**
 
 ## Возможности
 
@@ -21,6 +21,21 @@
 - отдельный change descriptor с веткой `/1/*`
 - независимое копирование обоих descriptors
 
+### Descriptor Explorer
+
+- импорт публичного descriptor
+- поддержка `wsh(sortedmulti(...))`
+- проверка Bitcoin Core descriptor checksum
+- автоматическое добавление или исправление checksum
+- разбор threshold, количества ключей, fingerprints, origin paths и branches
+- определение mainnet, testnet, mixed или unknown network
+- обнаружение дубликатов extended public key
+- предупреждение о совпадающих fingerprints
+- предупреждения для `1-of-N` и `N-of-N`
+- Health Score от 0 до 100
+- компактный и форматированный вывод
+- копирование нормализованного descriptor
+
 ### Extended-key validation
 
 - настоящий Base58Check-разбор вместо проверки одной регуляркой
@@ -31,14 +46,6 @@
 - проверка depth, parent fingerprint, child number и chain code
 - проверка формата compressed public key
 - понятные сообщения об ошибках
-
-### Key origin validation
-
-- fingerprint строго из 8 hex-символов
-- derivation path с обозначениями `h` и `'`
-- нормализация пути
-- проверка диапазона индексов
-- запрет wildcard внутри origin path
 
 ## Запуск локально
 
@@ -89,30 +96,26 @@ Workflow находится в `.github/workflows/ci.yml`.
 
 Проверка выполняется локально. Приложение не запрашивает балансы и не передаёт ключи во внешние сервисы.
 
-Корректный формат fingerprint не доказывает, что он действительно относится к указанному account xpub. Для такой проверки нужны дополнительные исходные данные и сверка в кошельке-координаторе.
-
 Receive и change descriptors необходимо сохранять вместе. Без change descriptor восстановленный кошелёк может некорректно распознавать сдачу.
 
-## Ограничения v0.2
+## Ограничения v0.3
 
-- descriptor checksum пока не добавлен;
-- импорт descriptor пока отсутствует;
+- Descriptor Explorer пока поддерживает только `wsh(sortedmulti(...))`;
+- импорт `sh(wsh(...))`, `wpkh(...)`, `tr(...)` и других типов ещё не реализован;
 - приложение не создаёт ключи и не подписывает транзакции;
-- совместимость смешанных SLIP-132 key types пока не проверяется полностью;
+- Health Score является диагностической подсказкой, а не гарантией безопасности;
 - перед использованием с реальными средствами конфигурацию необходимо проверить в Sparrow или другом совместимом координаторе.
 
 ## Roadmap
 
 Ближайшие этапы:
 
-1. descriptor checksum;
-2. проверка совместимости типов ключей и derivation paths;
-3. автоматический Health Check;
-4. Descriptor Explorer;
-5. экспорт конфигурации в Sparrow;
-6. Backup Center;
-7. PSBT Inspector;
-8. Wallet Explorer.
+1. проверка совместимости key type и derivation path;
+2. экспорт конфигурации в Sparrow;
+3. поддержка дополнительных типов descriptor;
+4. Wallet Explorer и генерация адресов;
+5. PSBT Inspector;
+6. Backup Center.
 
 Полный план находится в [`TODO.md`](./TODO.md). История версий находится в [`CHANGELOG.md`](./CHANGELOG.md).
 
