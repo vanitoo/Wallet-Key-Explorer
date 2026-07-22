@@ -31,7 +31,7 @@ export function DescriptorExplorer() {
 
         {result.parsed && (
           <>
-            <div className="section-title settings-title"><span>02</span><div><h2>Разбор descriptor</h2><p>Структура, сеть, порог и ключи</p></div></div>
+            <div className="section-title settings-title"><span>02</span><div><h2>Разбор descriptor</h2><p>Структура, сеть, порог, ключи и совместимость</p></div></div>
             <div className="algorithm-metrics">
               <div><span>Script</span><strong>{result.parsed.scriptType}</strong></div>
               <div><span>Policy</span><strong>{result.parsed.threshold} из {result.parsed.total}</strong></div>
@@ -44,12 +44,15 @@ export function DescriptorExplorer() {
               <p>Рассчитанный checksum: <code>{result.parsed.calculatedChecksum}</code></p>
             </div>
 
-            {result.parsed.warnings.length > 0 && <div className="status"><strong>Health Check</strong><ul>{result.parsed.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>}
+            {result.parsed.warnings.length > 0
+              ? <div className="status"><strong>Health Check</strong><ul>{result.parsed.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>
+              : <div className="status"><strong>Health Check пройден.</strong><p>Явных проблем совместимости не обнаружено.</p></div>}
 
             <div className="signer-list">
               {result.parsed.keys.map((key, index) => (
                 <article className="signer-card" key={`${key.fingerprint}-${index}`}>
                   <div className="signer-heading"><strong>Signer {index + 1}</strong><span>{key.fingerprint}</span></div>
+                  <small>Key type: {key.prefix || "unknown"} · {key.compatibility === "recommended" ? "рекомендован для P2WSH" : key.compatibility === "warning" ? "требует проверки совместимости" : "неизвестный тип"}</small>
                   <small>Origin path: {key.path}</small>
                   <small>Branch: {key.branch}</small>
                   <pre>{key.xpub}</pre>
@@ -66,8 +69,8 @@ export function DescriptorExplorer() {
 
       <aside className="panel algorithm-panel">
         <div className="algorithm-symbol">#</div><h3>Descriptor Engine</h3>
-        <ul className="check-list"><li>Работает полностью локально</li><li>Проверяет Bitcoin Core checksum</li><li>Разбирает wsh(sortedmulti)</li><li>Находит смешанные сети и дубликаты</li></ul>
-        <div className="multisig-warning"><strong>Важно</strong><p>Используйте только публичные descriptor. Seed-фразы, xprv и другие приватные ключи сюда вводить нельзя.</p></div>
+        <ul className="check-list"><li>Работает полностью локально</li><li>Проверяет Bitcoin Core checksum</li><li>Проверяет BIP-48 P2WSH paths</li><li>Находит смешанные сети, branches и SLIP-132 риски</li></ul>
+        <div className="multisig-warning"><strong>Важно</strong><p>Предупреждение о совместимости не всегда означает невалидный кошелёк. Сверяйте descriptor с координатором, который его экспортировал.</p></div>
       </aside>
     </section>
   );
