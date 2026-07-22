@@ -8,6 +8,12 @@ type ActiveTab = "multisig" | "descriptor";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("multisig");
+  const [descriptorToInspect, setDescriptorToInspect] = useState("");
+
+  function inspectDescriptor(descriptor: string): void {
+    setDescriptorToInspect(descriptor);
+    setActiveTab("descriptor");
+  }
 
   return (
     <main className="shell">
@@ -26,7 +32,9 @@ export default function Home() {
         <button className={activeTab === "descriptor" ? "active" : ""} onClick={() => setActiveTab("descriptor")}>Descriptor Explorer</button>
       </div>
 
-      {activeTab === "multisig" ? <MultisigBuilder /> : <DescriptorExplorer />}
+      {activeTab === "multisig"
+        ? <MultisigBuilder onInspectDescriptor={inspectDescriptor} />
+        : <DescriptorExplorer initialDescriptor={descriptorToInspect} />}
 
       <footer className="app-footer"><span>Wallet Key Explorer</span><span>v0.3.0 · MIT License</span></footer>
     </main>
