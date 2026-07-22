@@ -1,0 +1,27 @@
+{
+  "name": "wallet-key-explorer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Offline Bitcoin wallet key and multisig descriptor exploration tools.",
+  "scripts": {
+    "dev": "next dev --hostname localhost --port 3200",
+    "build": "next build --webpack",
+    "start": "next start --hostname localhost --port 3200",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run lint && npm run build"
+  },
+  "dependencies": {
+    "next": "16.1.4",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.4",
+    "typescript": "^5"
+  }
+}
