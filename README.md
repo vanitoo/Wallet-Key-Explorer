@@ -22,12 +22,6 @@
 - отдельный change descriptor с веткой `/1/*`
 - независимое копирование обоих descriptors
 
-### Demo Mode
-
-Кнопка `Загрузить Demo 2 из 3` автоматически заполняет Builder тремя валидными искусственными xpub, fingerprints и BIP-48 paths. Режим предназначен только для проверки интерфейса, генерации descriptor и его последующего импорта в Descriptor Explorer.
-
-Не отправляйте Bitcoin на адреса, полученные из demo-конфигурации. Demo-ключи публичны и не предназначены для реальных средств.
-
 ### Descriptor Explorer
 
 - импорт публичного descriptor
@@ -38,6 +32,11 @@
 - определение mainnet, testnet, mixed или unknown network
 - обнаружение дубликатов extended public key
 - предупреждение о совпадающих fingerprints
+- проверка согласованности derivation paths
+- проверка BIP-48 P2WSH path вида `48'/coin'/account'/2'`
+- проверка receive/change branches `/0/*` и `/1/*`
+- предупреждение при смешении branches внутри одного descriptor
+- диагностика совместимости `xpub/tpub` и SLIP-132 ключей `ypub/zpub/upub/vpub`
 - предупреждения для `1-of-N` и `N-of-N`
 - Health Score от 0 до 100
 - компактный и форматированный вывод
@@ -80,14 +79,16 @@ npm run build     # production-сборка
 npm run check     # typecheck + lint + build
 ```
 
-## Как проверить Demo Mode
+## Проверка Demo Mode
 
-1. Откройте вкладку `Multisig Builder`.
-2. Нажмите `Загрузить Demo 2 из 3`.
-3. Дождитесь проверки трёх xpub.
-4. Скопируйте receive descriptor.
-5. Перейдите во вкладку `Descriptor Explorer`.
-6. Вставьте descriptor и проверьте checksum, структуру и Health Score.
+1. Откройте вкладку **Multisig Builder**.
+2. Нажмите **Загрузить Demo 2 из 3**.
+3. Дождитесь проверки трёх публичных ключей.
+4. Скопируйте receive или change descriptor.
+5. Вставьте его во вкладку **Descriptor Explorer**.
+6. Проверьте checksum, BIP-48 path, branch, key type и Health Score.
+
+Demo-ключи являются публичными тестовыми данными. Не отправляйте средства на адреса, полученные из этой конфигурации.
 
 ## Continuous Integration
 
@@ -114,25 +115,28 @@ Workflow находится в `.github/workflows/ci.yml`.
 
 Receive и change descriptors необходимо сохранять вместе. Без change descriptor восстановленный кошелёк может некорректно распознавать сдачу.
 
+Предупреждение о типе extended key не всегда означает, что descriptor невалиден. Некоторые координаторы экспортируют ключи в собственном или преобразованном формате. Перед использованием с реальными средствами сверяйте descriptor, fingerprints и первые адреса в исходном кошельке-координаторе.
+
 ## Ограничения v0.3
 
 - Descriptor Explorer пока поддерживает только `wsh(sortedmulti(...))`;
 - импорт `sh(wsh(...))`, `wpkh(...)`, `tr(...)` и других типов ещё не реализован;
-- приложение не создаёт реальные ключи и не подписывает транзакции;
-- Demo Mode содержит публичные тестовые данные и не подходит для хранения средств;
+- приложение не создаёт ключи и не подписывает транзакции;
 - Health Score является диагностической подсказкой, а не гарантией безопасности;
+- Base58Check-разбор ключей внутри Descriptor Explorer будет унифицирован с Multisig Builder на следующем этапе;
 - перед использованием с реальными средствами конфигурацию необходимо проверить в Sparrow или другом совместимом координаторе.
 
 ## Roadmap
 
 Ближайшие этапы:
 
-1. проверка совместимости key type и derivation path;
-2. экспорт конфигурации в Sparrow;
-3. поддержка дополнительных типов descriptor;
-4. Wallet Explorer и генерация адресов;
-5. PSBT Inspector;
-6. Backup Center.
+1. прямая передача descriptor из Multisig Builder в Descriptor Explorer;
+2. унификация полной Base58Check-проверки внутри Descriptor Explorer;
+3. экспорт конфигурации в Sparrow;
+4. поддержка дополнительных типов descriptor;
+5. Wallet Explorer и генерация адресов;
+6. PSBT Inspector;
+7. Backup Center.
 
 Полный план находится в [`TODO.md`](./TODO.md). История версий находится в [`CHANGELOG.md`](./CHANGELOG.md).
 
