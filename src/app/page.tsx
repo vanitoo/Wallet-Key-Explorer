@@ -49,7 +49,7 @@ export default function Home() {
         />
       </div>
 
-      <footer className="app-footer"><span>Wallet Key Explorer</span><span>v0.4.0 · Public Bitcoin Object Analysis · MIT</span></footer>
+      <footer className="app-footer"><span>Wallet Key Explorer</span><span>v0.3.0 · Public Bitcoin Object Analysis · MIT</span></footer>
     </main>
   );
 }
