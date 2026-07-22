@@ -17,6 +17,9 @@
 - отдельные предупреждения для `1-of-N` и `N-of-N`
 - блокировка descriptor при дубликатах extended public key
 - предупреждение при совпадающих fingerprint
+- отдельный receive descriptor с веткой `/0/*`
+- отдельный change descriptor с веткой `/1/*`
+- независимое копирование обоих descriptors
 
 ### Extended-key validation
 
@@ -71,6 +74,8 @@ GitHub Actions автоматически запускает `npm ci` и `npm ru
 - при каждом pull request в `main`;
 - вручную через `workflow_dispatch`.
 
+Workflow находится в `.github/workflows/ci.yml`.
+
 ## Безопасность
 
 Приложение предназначено для работы только с публичными данными кошелька.
@@ -86,27 +91,28 @@ GitHub Actions автоматически запускает `npm ci` и `npm ru
 
 Корректный формат fingerprint не доказывает, что он действительно относится к указанному account xpub. Для такой проверки нужны дополнительные исходные данные и сверка в кошельке-координаторе.
 
+Receive и change descriptors необходимо сохранять вместе. Без change descriptor восстановленный кошелёк может некорректно распознавать сдачу.
+
 ## Ограничения v0.2
 
 - descriptor checksum пока не добавлен;
-- формируется только receive descriptor с веткой `/0/*`;
 - импорт descriptor пока отсутствует;
 - приложение не создаёт ключи и не подписывает транзакции;
+- совместимость смешанных SLIP-132 key types пока не проверяется полностью;
 - перед использованием с реальными средствами конфигурацию необходимо проверить в Sparrow или другом совместимом координаторе.
 
 ## Roadmap
 
 Ближайшие этапы:
 
-1. receive/change descriptor;
-2. descriptor checksum;
-3. проверка совместимости типов ключей и derivation paths;
-4. автоматический Health Check;
-5. Descriptor Explorer;
-6. экспорт конфигурации в Sparrow;
-7. Backup Center;
-8. PSBT Inspector;
-9. Wallet Explorer.
+1. descriptor checksum;
+2. проверка совместимости типов ключей и derivation paths;
+3. автоматический Health Check;
+4. Descriptor Explorer;
+5. экспорт конфигурации в Sparrow;
+6. Backup Center;
+7. PSBT Inspector;
+8. Wallet Explorer.
 
 Полный план находится в [`TODO.md`](./TODO.md). История версий находится в [`CHANGELOG.md`](./CHANGELOG.md).
 
