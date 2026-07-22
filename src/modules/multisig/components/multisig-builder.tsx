@@ -6,6 +6,13 @@ import { validateExtendedPublicKey } from "../lib/extended-key";
 type Network = "mainnet" | "testnet";
 type Signer = { name: string; fingerprint: string; derivation: string; xpub: string };
 type KeyStatus = { pending: boolean; error: string; prefix?: string; network?: Network; depth?: number };
+type PolicyPreset = { threshold: number; total: number; title: string; description: string };
+
+const POLICY_PRESETS: PolicyPreset[] = [
+  { threshold: 2, total: 3, title: "2 из 3", description: "Личный multisig: один ключ можно потерять" },
+  { threshold: 3, total: 5, title: "3 из 5", description: "Организация: устойчивость к потере двух ключей" },
+  { threshold: 2, total: 2, title: "2 из 2", description: "Совместный кошелёк: нужны оба участника" },
+];
 
 function defaultDerivation(network: Network): string {
   return network === "mainnet" ? "48'/0'/0'/2'" : "48'/1'/0'/2'";
@@ -39,6 +46,7 @@ export function MultisigBuilder() {
   const [network, setNetwork] = useState<Network>("mainnet");
   const [total, setTotal] = useState(3);
   const [threshold, setThreshold] = useState(2);
+  const [allowSingleSignature, setAllowSingleSignature] = useState(false);
   const [signers, setSigners] = useState<Signer[]>(() => Array.from({ length: 3 }, (_, index) => emptySigner(index, "mainnet")));
   const [keyStatuses, setKeyStatuses] = useState<KeyStatus[]>(() => Array.from({ length: 3 }, () => ({ pending: false, error: "Укажите extended public key" })));
   const [copied, setCopied] = useState(false);
@@ -68,6 +76,21 @@ export function MultisigBuilder() {
     setTotal(nextTotal);
     setThreshold((current) => Math.min(current, nextTotal));
     setSigners((current) => Array.from({ length: nextTotal }, (_, index) => current[index] ?? emptySigner(index, network)));
+    setAllowSingleSignature(false);
+    setCopied(false);
+  }
+
+  function changeThreshold(nextThreshold: number): void {
+    setThreshold(nextThreshold);
+    if (nextThreshold !== 1) setAllowSingleSignature(false);
+    setCopied(false);
+  }
+
+  function applyPreset(preset: PolicyPreset): void {
+    setTotal(preset.total);
+    setThreshold(preset.threshold);
+    setSigners((current) => Array.from({ length: preset.total }, (_, index) => current[index] ?? emptySigner(index, network)));
+    setAllowSingleSignature(false);
     setCopied(false);
   }
 
@@ -94,11 +117,14 @@ export function MultisigBuilder() {
     return new Set(values).size !== values.length;
   }, [signers]);
 
+  const singleSignatureBlocked = threshold === 1 && total > 1 && !allowSingleSignature;
+  const allSignaturesRequired = threshold === total;
+
   const descriptor = useMemo(() => {
-    if (signerErrors.some(Boolean) || duplicateXpubs) return "";
+    if (signerErrors.some(Boolean) || duplicateXpubs || singleSignatureBlocked) return "";
     const keys = signers.map((signer) => `[${normalizeFingerprint(signer.fingerprint)}/${normalizePath(signer.derivation)}]${signer.xpub.trim()}/0/*`);
     return `wsh(sortedmulti(${threshold},${keys.join(",")}))`;
-  }, [duplicateXpubs, signerErrors, signers, threshold]);
+  }, [duplicateXpubs, signerErrors, signers, singleSignatureBlocked, threshold]);
 
   async function copyDescriptor(): Promise<void> {
     if (!descriptor) return;
@@ -110,11 +136,32 @@ export function MultisigBuilder() {
     <section className="workspace multisig-workspace">
       <div className="panel input-panel">
         <div className="section-title"><span>01</span><div><h2>Политика кошелька</h2><p>Bitcoin P2WSH multisig с descriptor формата sortedmulti</p></div></div>
+
+        <div className="generation-actions">
+          {POLICY_PRESETS.map((preset) => (
+            <button key={preset.title} type="button" onClick={() => applyPreset(preset)} title={preset.description}>{preset.title}</button>
+          ))}
+        </div>
+
         <div className="multisig-policy-grid">
           <label>Сеть<select value={network} onChange={(event) => changeNetwork(event.target.value as Network)}><option value="mainnet">Bitcoin Mainnet</option><option value="testnet">Bitcoin Testnet</option></select></label>
           <label>Всего подписантов<select value={total} onChange={(event) => changeTotal(Number(event.target.value))}>{[2, 3, 4, 5].map((count) => <option key={count} value={count}>{count}</option>)}</select></label>
-          <label>Нужно подписей<select value={threshold} onChange={(event) => setThreshold(Number(event.target.value))}>{Array.from({ length: total }, (_, index) => index + 1).map((count) => <option key={count} value={count}>{count} из {total}</option>)}</select></label>
+          <label>Нужно подписей<select value={threshold} onChange={(event) => changeThreshold(Number(event.target.value))}>{Array.from({ length: total }, (_, index) => index + 1).map((count) => <option key={count} value={count}>{count} из {total}</option>)}</select></label>
         </div>
+
+        {threshold === 1 && total > 1 && (
+          <div className="status error">
+            <strong>1 из {total} почти не даёт преимуществ multisig.</strong>
+            <p>Любой один ключ сможет потратить средства. Используйте такую схему только осознанно.</p>
+            <label><input type="checkbox" checked={allowSingleSignature} onChange={(event) => setAllowSingleSignature(event.target.checked)} /> Я понимаю риск и разрешаю создать descriptor</label>
+          </div>
+        )}
+
+        {allSignaturesRequired && (
+          <div className="status">
+            <strong>Для {threshold} из {total} нужны все ключи.</strong> Потеря или недоступность любого signer навсегда заблокирует расходы.
+          </div>
+        )}
 
         <div className="section-title settings-title"><span>02</span><div><h2>Публичные ключи подписантов</h2><p>Seed-фразы и приватные ключи сюда вводить нельзя</p></div></div>
         {duplicateXpubs && <div className="status error">У двух или более подписантов одинаковый extended public key. Descriptor заблокирован.</div>}
@@ -137,12 +184,12 @@ export function MultisigBuilder() {
         </div>
 
         <div className="section-title settings-title"><span>03</span><div><h2>Wallet descriptor</h2><p>Сохраните его вместе с fingerprints, путями и xpub всех участников</p></div></div>
-        <div className="descriptor-output"><pre>{descriptor || "Заполните корректные публичные данные всех подписантов"}</pre><div className="generation-actions"><button disabled={!descriptor} onClick={copyDescriptor}>{copied ? "Скопировано" : "Копировать descriptor"}</button></div></div>
+        <div className="descriptor-output"><pre>{descriptor || (singleSignatureBlocked ? "Подтвердите риск схемы 1-of-N" : "Заполните корректные публичные данные всех подписантов")}</pre><div className="generation-actions"><button disabled={!descriptor} onClick={copyDescriptor}>{copied ? "Скопировано" : "Копировать descriptor"}</button></div></div>
       </div>
 
       <aside className="panel algorithm-panel">
         <div className="algorithm-symbol">⌘</div><h3>{threshold} из {total}</h3>
-        <ul className="check-list"><li>Base58Check checksum проверяется</li><li>Сеть определяется из version bytes</li><li>Приватные extended keys блокируются</li><li>Origin path нормализуется</li></ul>
+        <ul className="check-list"><li>Base58Check checksum проверяется</li><li>Сеть определяется из version bytes</li><li>Приватные extended keys блокируются</li><li>{allSignaturesRequired ? "Потеря одного ключа блокирует кошелёк" : `Можно потерять ${total - threshold} ключ${total - threshold === 1 ? "" : "а"}`}</li></ul>
         <div className="algorithm-metrics"><div><span>Порог</span><strong>{threshold}</strong></div><div><span>Ключей</span><strong>{total}</strong></div></div>
         <div className="multisig-warning"><strong>Важно</strong><p>Fingerprint нельзя криптографически связать с account xpub без master public key. Корректный формат не доказывает происхождение ключа.</p></div>
         <div className="flow-diagram"><span>{total} независимых ключа</span><b>↓</b><span>{threshold} подписей</span><b>↓</b><span>P2WSH multisig</span></div>
