@@ -6,6 +6,13 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Уточнено назначение проекта: анализ только существующих публичных криптографических объектов Bitcoin.
+- Удалена неактивная вкладка Wallet Explorer.
+- Wallet Explorer, Seed Explorer, Derivation Explorer, работа с BIP39 seed и генерация адресов перенесены в roadmap HD Wallet Explorer.
+- Roadmap сосредоточен на Multisig Builder, Descriptor Explorer, Extended Key Inspector, Address Explorer, PSBT Inspector и публичном Backup Center.
+
 ### Added
 
 - проверка совместимости key type с P2WSH multisig;
@@ -16,17 +23,16 @@
 - обнаружение смешанных receive/change branches;
 - отображение key type и статуса совместимости для каждого signer;
 - расширенный Health Score с учётом path, branch и SLIP-132 рисков;
-- прямая передача receive descriptor из Multisig Builder в Descriptor Explorer;
-- прямая передача change descriptor из Multisig Builder в Descriptor Explorer;
-- автоматическое переключение на вкладку Descriptor Explorer без использования буфера обмена;
+- прямая передача receive/change descriptor из Multisig Builder в Descriptor Explorer;
 - сохранение переданного descriptor при переключении между вкладками.
 
 ### Planned
 
-- полная Base58Check-проверка ключей внутри Descriptor Explorer;
-- экспорт конфигурации в Sparrow;
-- поддержка дополнительных типов descriptor;
-- Wallet Explorer;
+- полная унификация Base58Check-проверки;
+- экспорт публичной multisig-конфигурации в Sparrow;
+- дополнительные типы descriptor;
+- Extended Key Inspector;
+- Address Explorer;
 - PSBT Inspector.
 
 ## [0.3.0] — 2026-07-22
@@ -45,10 +51,7 @@
 - предупреждение о совпадающих fingerprints;
 - предупреждения для `1-of-N` и `N-of-N`;
 - компактный и форматированный вывод descriptor;
-- отдельное копирование обоих форматов;
-- отдельный модуль descriptor engine;
-- Demo Mode с искусственной конфигурацией `2-of-3`;
-- очистка тестовой конфигурации одной кнопкой.
+- Demo Mode с искусственной конфигурацией `2-of-3`.
 
 ### Changed
 
@@ -65,24 +68,17 @@
 - определение сети по version bytes;
 - распознавание `xpub`, `ypub`, `zpub`, `tpub`, `upub`, `vpub`;
 - блокировка приватных extended keys;
-- проверка BIP-32 полей: depth, parent fingerprint, child number, chain code и compressed public key;
-- понятные причины ошибок в интерфейсе;
-- проверка fingerprint как 8 hex-символов;
-- поддержка derivation path с `h` и `'`;
-- нормализация key origin path;
-- запрет wildcard внутри origin path;
-- шаблоны multisig `2-of-3`, `3-of-5`, `2-of-2`;
-- явное подтверждение риска для `1-of-N`;
-- предупреждение для `N-of-N`;
-- отображение допустимого числа потерянных ключей;
-- отдельные receive и change descriptors;
-- GitHub Actions для автоматической проверки сборки.
+- проверка BIP-32 полей;
+- проверка fingerprint и key origin path;
+- multisig templates;
+- receive/change descriptors;
+- GitHub Actions.
 
 ### Security
 
 - приватные extended keys отклоняются до генерации descriptor;
 - descriptor блокируется при дубликатах extended public key;
-- совпадающие fingerprint показываются как предупреждение, а не как доказательство одинаковых ключей.
+- совпадающие fingerprint показываются как предупреждение.
 
 ## [0.1.0] — 2026-07-22
 
@@ -95,8 +91,4 @@
 - схемы N-of-M для 2–5 подписантов;
 - ввод имени подписанта, fingerprint, derivation path и extended public key;
 - генерация `wsh(sortedmulti(...))`;
-- копирование descriptor;
-- базовая проверка префикса сети;
-- проверка дубликатов xpub;
-- предупреждение о совпадающих fingerprint;
-- автоматическая подстановка стандартного BIP-48 пути.
+- базовые проверки и копирование descriptor.
