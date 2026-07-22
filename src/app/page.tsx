@@ -1,4 +1,4 @@
-import { MultisigBuilder } from "@/features/multisig/components/multisig-builder";
+import { MultisigBuilder } from "../modules/multisig/components/multisig-builder";
 
 export default function Home() {
   return (
