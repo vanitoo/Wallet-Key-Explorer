@@ -8,6 +8,7 @@ type DescriptorBranch = "receive" | "change";
 type Signer = { name: string; fingerprint: string; derivation: string; xpub: string };
 type KeyStatus = { pending: boolean; error: string; prefix?: string; network?: Network; depth?: number };
 type PolicyPreset = { threshold: number; total: number; title: string; description: string };
+type MultisigBuilderProps = { onInspectDescriptor?: (descriptor: string) => void };
 
 const POLICY_PRESETS: PolicyPreset[] = [
   { threshold: 2, total: 3, title: "2 из 3", description: "Личный multisig: один ключ можно потерять" },
@@ -64,7 +65,7 @@ function validatePath(value: string): string {
   return "";
 }
 
-export function MultisigBuilder() {
+export function MultisigBuilder({ onInspectDescriptor }: MultisigBuilderProps) {
   const [network, setNetwork] = useState<Network>("mainnet");
   const [total, setTotal] = useState(3);
   const [threshold, setThreshold] = useState(2);
@@ -190,6 +191,12 @@ export function MultisigBuilder() {
     setCopiedBranch(branch);
   }
 
+  function inspectDescriptor(branch: DescriptorBranch): void {
+    const descriptor = descriptors[branch];
+    if (!descriptor || !onInspectDescriptor) return;
+    onInspectDescriptor(descriptor);
+  }
+
   const emptyDescriptorMessage = singleSignatureBlocked
     ? "Подтвердите риск схемы 1-of-N"
     : "Заполните корректные публичные данные всех подписантов";
@@ -259,13 +266,19 @@ export function MultisigBuilder() {
         <div className="descriptor-output">
           <strong>Receive descriptor · /0/*</strong>
           <pre>{descriptors.receive || emptyDescriptorMessage}</pre>
-          <div className="generation-actions"><button disabled={!descriptors.receive} onClick={() => copyDescriptor("receive")}>{copiedBranch === "receive" ? "Скопировано" : "Копировать receive descriptor"}</button></div>
+          <div className="generation-actions">
+            <button disabled={!descriptors.receive} onClick={() => copyDescriptor("receive")}>{copiedBranch === "receive" ? "Скопировано" : "Копировать receive descriptor"}</button>
+            <button disabled={!descriptors.receive || !onInspectDescriptor} onClick={() => inspectDescriptor("receive")}>Проверить receive в Explorer</button>
+          </div>
         </div>
 
         <div className="descriptor-output">
           <strong>Change descriptor · /1/*</strong>
           <pre>{descriptors.change || emptyDescriptorMessage}</pre>
-          <div className="generation-actions"><button disabled={!descriptors.change} onClick={() => copyDescriptor("change")}>{copiedBranch === "change" ? "Скопировано" : "Копировать change descriptor"}</button></div>
+          <div className="generation-actions">
+            <button disabled={!descriptors.change} onClick={() => copyDescriptor("change")}>{copiedBranch === "change" ? "Скопировано" : "Копировать change descriptor"}</button>
+            <button disabled={!descriptors.change || !onInspectDescriptor} onClick={() => inspectDescriptor("change")}>Проверить change в Explorer</button>
+          </div>
         </div>
       </div>
 
