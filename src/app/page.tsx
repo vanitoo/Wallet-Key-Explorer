@@ -35,7 +35,6 @@ export default function Home() {
 
       <div className="tabs main-tabs">
         <button className={activeTab === "multisig" ? "active" : ""} onClick={() => setActiveTab("multisig")}>Multisig Builder</button>
-        <button disabled>Wallet Explorer</button>
         <button className={activeTab === "descriptor" ? "active" : ""} onClick={() => setActiveTab("descriptor")}>Descriptor Explorer</button>
       </div>
 
