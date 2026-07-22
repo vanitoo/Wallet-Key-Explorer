@@ -1,21 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { formatDescriptor, parseDescriptor } from "../lib/descriptor";
 
 type DescriptorExplorerProps = {
-  initialDescriptor?: string;
+  value: string;
+  onValueChange: (value: string) => void;
+  importedFromBuilder?: boolean;
 };
 
-export function DescriptorExplorer({ initialDescriptor = "" }: DescriptorExplorerProps) {
-  const [value, setValue] = useState(initialDescriptor);
+export function DescriptorExplorer({ value, onValueChange, importedFromBuilder = false }: DescriptorExplorerProps) {
   const [copied, setCopied] = useState<"compact" | "formatted" | "">("");
-
-  useEffect(() => {
-    if (!initialDescriptor) return;
-    setValue(initialDescriptor);
-    setCopied("");
-  }, [initialDescriptor]);
 
   const result = useMemo(() => {
     try {
@@ -36,8 +31,8 @@ export function DescriptorExplorer({ initialDescriptor = "" }: DescriptorExplore
     <section className="workspace multisig-workspace">
       <div className="panel input-panel">
         <div className="section-title"><span>01</span><div><h2>Descriptor import</h2><p>Вставьте публичный Bitcoin descriptor для локальной проверки</p></div></div>
-        {initialDescriptor && <div className="status"><strong>Descriptor получен из Multisig Builder.</strong><p>Можно сразу проверять структуру, checksum и совместимость.</p></div>}
-        <label>Wallet descriptor<textarea value={value} onChange={(event) => { setValue(event.target.value); setCopied(""); }} placeholder="wsh(sortedmulti(2,[F23AABCD/48'/0'/0'/2']xpub.../0/*,...))#checksum" spellCheck={false} rows={8} /></label>
+        {importedFromBuilder && value && <div className="status"><strong>Descriptor получен из Multisig Builder.</strong><p>Можно сразу проверять структуру, checksum и совместимость.</p></div>}
+        <label>Wallet descriptor<textarea value={value} onChange={(event) => { onValueChange(event.target.value); setCopied(""); }} placeholder="wsh(sortedmulti(2,[F23AABCD/48'/0'/0'/2']xpub.../0/*,...))#checksum" spellCheck={false} rows={8} /></label>
         {result.error && <div className="status error">{result.error}</div>}
 
         {result.parsed && (
