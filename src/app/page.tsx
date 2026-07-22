@@ -32,9 +32,12 @@ export default function Home() {
         <button className={activeTab === "descriptor" ? "active" : ""} onClick={() => setActiveTab("descriptor")}>Descriptor Explorer</button>
       </div>
 
-      {activeTab === "multisig"
-        ? <MultisigBuilder onInspectDescriptor={inspectDescriptor} />
-        : <DescriptorExplorer initialDescriptor={descriptorToInspect} />}
+      <div hidden={activeTab !== "multisig"}>
+        <MultisigBuilder onInspectDescriptor={inspectDescriptor} />
+      </div>
+      <div hidden={activeTab !== "descriptor"}>
+        <DescriptorExplorer initialDescriptor={descriptorToInspect} />
+      </div>
 
       <footer className="app-footer"><span>Wallet Key Explorer</span><span>v0.3.0 · MIT License</span></footer>
     </main>
