@@ -6,19 +6,38 @@
 
 ## [Unreleased]
 
-### Added
-
-- отдельные receive и change descriptors;
-- receive branch `/0/*`;
-- change branch `/1/*`;
-- независимое копирование каждого descriptor;
-- предупреждение о необходимости сохранять оба descriptor.
-
 ### Planned
 
-- descriptor checksum;
 - проверка совместимости key type и derivation path;
-- автоматический Health Check конфигурации.
+- экспорт конфигурации в Sparrow;
+- поддержка дополнительных типов descriptor;
+- Wallet Explorer;
+- PSBT Inspector.
+
+## [0.3.0] — 2026-07-22
+
+### Added
+
+- рабочая вкладка Descriptor Explorer;
+- импорт `wsh(sortedmulti(...))` descriptor;
+- Bitcoin Core descriptor checksum;
+- проверка существующего checksum;
+- автоматическое добавление или исправление checksum;
+- разбор threshold, количества ключей, fingerprints, origin paths и branches;
+- определение mainnet, testnet, mixed и unknown network;
+- Health Score от 0 до 100;
+- обнаружение дубликатов extended public key;
+- предупреждение о совпадающих fingerprints;
+- предупреждения для `1-of-N` и `N-of-N`;
+- компактный и форматированный вывод descriptor;
+- отдельное копирование обоих форматов;
+- отдельный модуль descriptor engine.
+
+### Changed
+
+- версия проекта повышена до 0.3.0;
+- декоративная вкладка Descriptor Explorer заменена рабочим инструментом;
+- README обновлён под v0.3.
 
 ## [0.2.0] — 2026-07-22
 
@@ -39,20 +58,14 @@
 - явное подтверждение риска для `1-of-N`;
 - предупреждение для `N-of-N`;
 - отображение допустимого числа потерянных ключей;
+- отдельные receive и change descriptors;
 - GitHub Actions для автоматической проверки сборки.
-
-### Changed
-
-- версия проекта повышена до 0.2.0;
-- README обновлён под текущее состояние проекта;
-- проверка сети больше не зависит от текстового префикса ключа.
 
 ### Security
 
 - приватные extended keys отклоняются до генерации descriptor;
 - descriptor блокируется при дубликатах extended public key;
-- совпадающие fingerprint показываются как предупреждение, а не как доказательство одинаковых ключей;
-- интерфейс явно сообщает, что fingerprint нельзя криптографически связать с account xpub без дополнительных исходных данных.
+- совпадающие fingerprint показываются как предупреждение, а не как доказательство одинаковых ключей.
 
 ## [0.1.0] — 2026-07-22
 
