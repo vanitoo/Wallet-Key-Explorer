@@ -15,11 +15,14 @@
 - проверка branches `/0/*` и `/1/*`;
 - обнаружение смешанных receive/change branches;
 - отображение key type и статуса совместимости для каждого signer;
-- расширенный Health Score с учётом path, branch и SLIP-132 рисков.
+- расширенный Health Score с учётом path, branch и SLIP-132 рисков;
+- прямая передача receive descriptor из Multisig Builder в Descriptor Explorer;
+- прямая передача change descriptor из Multisig Builder в Descriptor Explorer;
+- автоматическое переключение на вкладку Descriptor Explorer без использования буфера обмена;
+- сохранение переданного descriptor при переключении между вкладками.
 
 ### Planned
 
-- прямая передача descriptor из Multisig Builder в Descriptor Explorer;
 - полная Base58Check-проверка ключей внутри Descriptor Explorer;
 - экспорт конфигурации в Sparrow;
 - поддержка дополнительных типов descriptor;
