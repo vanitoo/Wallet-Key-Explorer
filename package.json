@@ -1,8 +1,8 @@
 {
   "name": "wallet-key-explorer",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
-  "description": "Offline Bitcoin wallet key and multisig descriptor exploration tools.",
+  "description": "Offline analysis tools for public Bitcoin cryptographic objects: extended keys, descriptors, multisig policies, scripts and PSBT.",
   "scripts": {
     "dev": "next dev --hostname localhost --port 3200",
     "build": "next build --webpack",
