@@ -26,9 +26,9 @@ export default function Home() {
     <main className="shell">
       <section className="hero">
         <div>
-          <span className="eyebrow">LOCAL · OFFLINE · OPEN SOURCE</span>
+          <span className="eyebrow">LOCAL · OFFLINE · PUBLIC DATA ONLY</span>
           <h1>Wallet Key Explorer</h1>
-          <p>Офлайн-инструменты для анализа публичных ключей, descriptor и multisig-конфигураций Bitcoin.</p>
+          <p>Инструменты для анализа публичных криптографических объектов Bitcoin: extended keys, descriptors, multisig policies, scripts и PSBT.</p>
         </div>
         <div className="offline-pill"><span /> Сеть не используется</div>
       </section>
@@ -49,7 +49,7 @@ export default function Home() {
         />
       </div>
 
-      <footer className="app-footer"><span>Wallet Key Explorer</span><span>v0.3.0 · MIT License</span></footer>
+      <footer className="app-footer"><span>Wallet Key Explorer</span><span>v0.4.0 · Public Bitcoin Object Analysis · MIT</span></footer>
     </main>
   );
 }
