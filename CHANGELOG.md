@@ -4,26 +4,30 @@
 
 ## [Unreleased]
 
-### Added
-
-- Descriptor Inspector v2 with explicit checksum, network and branch statuses;
-- strict key-origin and wildcard branch validation for `wsh(sortedmulti(...))`;
-- rejection of private extended keys inside descriptors;
-- receive/change/custom branch classification and per-key network diagnostics;
-- descriptor unit tests covering checksum normalization, branches and unsafe inputs;
-- combined Node.js test suite for extended-key and descriptor codecs.
-
-### Changed
-
-- Descriptor Inspector UI now exposes origin, branch type, wildcard status and normalized output;
-- descriptor health diagnostics now distinguish missing, valid and invalid checksums;
-- `npm test` now runs every compiled `*.test.js` suite.
-
 ### Planned
 
-- Address Inspector;
 - Script Inspector;
-- read-only PSBT Inspector.
+- read-only PSBT Inspector;
+- Transaction Inspector.
+
+## [0.6.0] — 2026-07-23
+
+### Added
+
+- отдельная вкладка Address Inspector;
+- Base58Check, Bech32 и Bech32m decoding;
+- определение Mainnet, Testnet и Regtest;
+- распознавание P2PKH, P2SH, P2WPKH, P2WSH и P2TR;
+- разбор witness version и witness program;
+- построение `scriptPubKey` из введённого адреса;
+- demo-векторы и отдельные unit-тесты адресного codec;
+- команда `npm run test:address`.
+
+### Security
+
+- Address Inspector работает полностью локально;
+- не выполняет запросы баланса, истории транзакций или принадлежности адреса;
+- ограничивает размер входных данных и отвергает повреждённые checksum.
 
 ## [0.5.0] — 2026-07-23
 
@@ -37,20 +41,21 @@
 - SLIP-132 interpretation для `ypub`, `zpub`, `upub`, `vpub`;
 - JSON diagnostic report и копирование в буфер;
 - Demo xpub для безопасной проверки интерфейса;
-- unit-test infrastructure based on TypeScript and the built-in Node.js test runner;
-- positive and negative extended-key codec coverage.
+- Descriptor Inspector v2 with explicit checksum, network and branch statuses;
+- strict key-origin and wildcard branch validation for `wsh(sortedmulti(...))`;
+- descriptor and extended-key unit-test suites.
 
 ### Changed
 
 - extended-key logic вынесена в общий `src/modules/common/lib/extended-key.ts`;
 - Multisig Policy Builder использует общий validation engine;
 - Extended Key Inspector стал первой вкладкой приложения;
-- версия приложения повышена до 0.5.0.
+- `npm test` запускает все скомпилированные тестовые наборы.
 
 ### Security
 
 - private extended keys распознаются только для немедленного отказа;
-- интерфейс явно запрещает ввод `xprv`, `yprv`, `zprv`, `tprv`, `uprv`, `vprv`;
+- интерфейс запрещает ввод private extended keys;
 - Inspector не выполняет derivation и не обращается к сети.
 
 ## [0.4.0] — 2026-07-23
