@@ -5,8 +5,8 @@ import { inspectAddress, type AddressInspection } from "../lib/address";
 
 const DEMOS = [
   { label: "P2PKH", value: "1BoatSLRHtKNngkdXEeobR76b53LETtpyT" },
-  { label: "P2WPKH", value: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080" },
-  { label: "P2TR", value: "bc1p5cyxnuxmeuwuvkwfem96llyvf9lqf3x7q9r6k4" },
+  { label: "P2SH", value: "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy" },
+  { label: "P2WPKH", value: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4" },
 ];
 
 export function AddressInspector() {
