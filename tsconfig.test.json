@@ -15,6 +15,7 @@
   "include": [
     "src/modules/common/lib/extended-key.ts",
     "src/modules/descriptor/lib/descriptor.ts",
+    "src/modules/address/lib/address.ts",
     "tests/**/*.test.ts"
   ],
   "exclude": [
