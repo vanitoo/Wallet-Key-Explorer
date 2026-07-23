@@ -57,26 +57,25 @@ test("inspectExtendedKey decodes a valid mainnet xpub", async () => {
   assert.equal(result.kind, "public");
   assert.equal(result.prefix, "xpub");
   assert.equal(result.network, "mainnet");
-  assert.equal(result.versionHex, "0488B21E");
+  assert.equal(result.versionHex, "0x0488B21E");
   assert.equal(result.depth, 4);
   assert.equal(result.parentFingerprint, "5740AFD5");
   assert.equal(result.childNumber, 0x80000002);
   assert.equal(result.hardened, true);
   assert.equal(result.chainCode, "5148B3010394D5143F97D6EA9CE52CF193C77B24C19AAA47E74196DF8DCF37BC");
-  assert.equal(result.publicKey, "039D1ABAEC9F5715A15C7628244170951E0F85E87F68CA5393D3F9FC3FA23A69C8");
+  assert.equal(result.keyData, "039D1ABAEC9F5715A15C7628244170951E0F85E87F68CA5393D3F9FC3FA23A69C8");
 });
 
-test("validateExtendedPublicKey returns the compact public-key result", async () => {
+test("validateExtendedPublicKey returns a valid public inspection", async () => {
   const result = await validateExtendedPublicKey(DEMO_XPUB);
 
-  assert.deepEqual(result, {
-    valid: true,
-    prefix: "xpub",
-    network: "mainnet",
-    depth: 4,
-    childNumber: 0x80000002,
-    parentFingerprint: "5740AFD5",
-  });
+  assert.equal(result.valid, true);
+  assert.equal(result.kind, "public");
+  assert.equal(result.prefix, "xpub");
+  assert.equal(result.network, "mainnet");
+  assert.equal(result.depth, 4);
+  assert.equal(result.childNumber, 0x80000002);
+  assert.equal(result.parentFingerprint, "5740AFD5");
 });
 
 test("codec rejects a damaged Base58Check checksum", async () => {
