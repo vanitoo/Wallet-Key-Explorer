@@ -1,113 +1,60 @@
 # Wallet Key Explorer
 
-Локальный offline-first набор инструментов для анализа **существующих публичных криптографических объектов Bitcoin**.
+Локальный офлайн-набор инструментов для анализа **публичных криптографических объектов Bitcoin**.
 
-> Текущее рабочее название сохранено до отдельного этапа переименования. Назначение проекта уже закреплено как Public Bitcoin Object Analysis.
-
-## Назначение
-
-Проект принимает публичный сериализованный объект, разбирает его структуру, проверяет кодировки и контрольные суммы, выявляет ошибки совместимости и формирует понятный диагностический результат.
-
-Поддерживаемые и планируемые домены:
-
-- extended public keys и BIP-32/SLIP-132 metadata;
-- output descriptors;
-- multisig policies и signer metadata;
-- Bitcoin addresses;
-- scriptPubKey, redeemScript, witnessScript и witness programs;
-- PSBT;
-- raw transactions, signatures, Miniscript и связанные публичные форматы.
-
-Проект не является кошельком и не управляет средствами.
-
-## Строгая граница безопасности
-
-В проекте отсутствуют и не планируются:
-
-- mnemonic, BIP-39 passphrase, entropy и seed;
-- создание или восстановление HD-кошельков;
-- private keys, WIF и private extended keys;
-- xprv/yprv/zprv/tprv/uprv/vprv, кроме безопасного распознавания и немедленного отказа;
-- derivation-path brute force и wallet discovery;
-- генерация адресов из секретов;
-- balance scanning и blockchain lookup;
-- хранение пользовательских секретов;
-- signing, finalization и broadcasting.
-
-HD derivation и работа с seed находятся в **HD Wallet Explorer**. Recovery-сценарии находятся в **Wallet Recovery Studio**. Резервное копирование seed находится в **Seed Split Tool**.
+> Текущая версия: **v0.5.0 — Extended Key Inspector**
 
 ## Реализовано
+
+### Extended Key Inspector
+
+- Base58Check decode и checksum validation;
+- `xpub`, `ypub`, `zpub`, `tpub`, `upub`, `vpub`;
+- mainnet/testnet;
+- version bytes, depth, parent fingerprint и child number;
+- hardened flag, chain code и compressed public key;
+- SLIP-132 interpretation;
+- JSON report;
+- обнаружение и немедленный отказ для private extended keys.
 
 ### Multisig Policy Builder
 
 - P2WSH `wsh(sortedmulti(...))`;
-- Mainnet и Testnet;
 - политики от 2 до 5 подписантов;
-- шаблоны `2-of-3`, `3-of-5`, `2-of-2`;
-- public fingerprints, key origins и extended public keys;
-- Base58Check и network validation;
-- duplicate-key diagnostics;
-- receive `/0/*` и change `/1/*` descriptors;
-- Demo Mode на искусственных публичных данных;
-- прямая передача результата в Descriptor Inspector.
+- receive/change descriptors;
+- fingerprints, key origins и extended public keys;
+- общий extended-key validation engine;
+- Demo Mode на искусственных публичных данных.
 
 ### Descriptor Inspector
 
-- импорт и разбор `wsh(sortedmulti(...))`;
+- разбор `wsh(sortedmulti(...))`;
 - Bitcoin Core descriptor checksum;
-- нормализация и форматирование;
 - threshold, signer keys, origins и branches;
-- network detection;
-- BIP-48, branch и SLIP-132 diagnostics;
-- duplicate and compatibility warnings;
+- network, BIP-48 и SLIP-132 diagnostics;
 - Health Score.
 
-### Extended-key validation engine
+## Граница проекта
 
-- Base58Check decode и checksum;
-- version bytes и network;
-- `xpub`, `ypub`, `zpub`, `tpub`, `upub`, `vpub`;
-- depth, parent fingerprint, child number и chain code;
-- compressed public key validation;
-- отклонение private extended keys.
+Проект не является кошельком и не работает с секретами.
+
+Не поддерживаются mnemonic, entropy, seed, private keys, private extended keys, wallet recovery, balance lookup, signing, finalization и broadcasting.
+
+HD wallet и seed-функциональность находится в **HD Wallet Explorer**.
 
 ## Архитектура
 
 ```text
-src/
-  app/                         # navigation and cross-tool orchestration
-  modules/
-    descriptor/
-      components/
-      lib/
-    multisig/
-      components/
-      lib/
-    extended-key/              # planned
-    address/                   # planned
-    script/                    # planned
-    transaction/               # planned
-    psbt/                      # planned
-    signature/                 # planned
-    miniscript/                # planned
-    common/                    # shared codecs after proven reuse
+src/modules/
+  common/lib/extended-key.ts
+  extended-key/components/extended-key-inspector.tsx
+  multisig/
+  descriptor/
 ```
 
-Правила:
-
-1. `modules/*/lib` содержит чистую предметную логику и не зависит от React.
-2. UI не реализует parser или криптографический codec самостоятельно.
-3. Общий код переносится в `common` только после появления реального повторного использования.
-4. Любой ввод считается недоверенным и ограничивается по размеру до разбора.
-5. Секретные материалы отклоняются на границе ввода.
-6. Core-анализ не зависит от сети и внешних blockchain API.
-7. Один модуль не импортирует внутренности другого; интеграцию выполняет `src/app`.
-
-Подробнее: [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+Общий extended-key codec используется отдельным Inspector и Multisig Policy Builder.
 
 ## Запуск
-
-Требуется Node.js 20 или новее.
 
 ```bash
 npm install
@@ -117,20 +64,20 @@ npm run dev
 
 Откройте `http://localhost:3200`.
 
-```bash
-npm run dev       # development server
-npm run typecheck # TypeScript
-npm run lint      # ESLint
-npm run build     # production build
-npm run check     # typecheck + lint + build
-```
+## Следующие этапы
+
+1. тесты extended-key codec;
+2. Descriptor Inspector v2;
+3. Address Inspector;
+4. Script Inspector;
+5. PSBT Inspector.
 
 ## Документы
 
-- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — границы модулей и инженерные правила;
-- [`ROADMAP.md`](./ROADMAP.md) — последовательность развития;
-- [`TODO.md`](./TODO.md) — конкретные задачи;
-- [`CHANGELOG.md`](./CHANGELOG.md) — история изменений.
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+- [`ROADMAP.md`](./ROADMAP.md)
+- [`TODO.md`](./TODO.md)
+- [`CHANGELOG.md`](./CHANGELOG.md)
 
 ## Лицензия
 
