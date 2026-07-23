@@ -2,7 +2,7 @@
 
 ## System purpose
 
-Wallet Key Explorer is a local, read-only analysis environment for public Bitcoin cryptographic objects.
+This repository is a local, read-only analysis environment for public Bitcoin cryptographic objects.
 
 It is not a wallet runtime. It does not own accounts, secrets, balances or transaction-signing state.
 
@@ -22,17 +22,20 @@ src/
     extended-key/               # planned
     address/                    # planned
     script/                     # planned
+    transaction/                # planned
     psbt/                       # planned
+    signature/                  # planned
+    miniscript/                 # planned
     common/                     # shared codecs after proven reuse
 ```
 
-Each domain module should expose:
+Each module exposes:
 
 - parser/decoder functions;
 - normalized domain types;
 - validators and diagnostics;
 - formatters/exporters;
-- UI components that consume those public APIs.
+- UI components consuming only the module public API.
 
 ## Dependency rules
 
@@ -47,23 +50,21 @@ module lib -> common
 Forbidden:
 
 ```text
-module A components -> module B internal files
+module A components -> module B internals
 module A lib -> React or browser UI
 common -> domain modules
 parser -> network API
 ```
 
-Cross-tool workflows are coordinated by `src/app`, not by hidden imports between feature components.
+Cross-tool workflows are coordinated by `src/app`, never through hidden feature-to-feature imports.
 
-## Data model
+## Processing pipeline
 
-All inputs are treated as untrusted serialized public objects.
-
-Recommended processing pipeline:
+All inputs are untrusted serialized public objects.
 
 ```text
 raw input
-  -> size and character limits
+  -> size and complexity limits
   -> transport decoding
   -> structural parsing
   -> checksum validation
@@ -73,11 +74,9 @@ raw input
   -> report/export
 ```
 
-Parsing and validation should be separated. A structurally valid object may still produce semantic or interoperability warnings.
+Parsing and validation remain separate. A structurally valid object may still produce semantic or interoperability warnings.
 
 ## Diagnostics
-
-Diagnostics should eventually use stable codes:
 
 ```ts
 type Diagnostic = {
@@ -94,31 +93,34 @@ UI messages may be localized, but diagnostic codes remain stable for tests and e
 
 Rejected at input boundaries:
 
-- mnemonic phrases;
-- seed/entropy payloads;
+- mnemonic phrases and BIP-39 passphrases;
+- seed and entropy payloads;
 - WIF private keys;
 - private extended keys;
-- signing requests that require secret material.
+- signing requests requiring secret material.
 
 No module may:
 
-- persist user cryptographic input by default;
+- persist cryptographic input by default;
 - call blockchain explorers or wallet backends;
-- derive secrets;
+- derive secrets or addresses from secrets;
+- scan balances or transaction history;
 - sign, finalize or broadcast transactions;
-- claim funds or wallet recovery capability.
+- claim wallet creation or recovery capability.
+
+Detection of a private object is allowed only to reject it safely and explain the reason.
 
 ## Offline-first policy
 
-Core analysis must work without network access. External references may exist in documentation, but runtime correctness cannot depend on remote APIs.
+Core analysis must work without network access. Runtime correctness cannot depend on remote APIs.
 
 ## Testing strategy
 
-1. Unit tests for codecs, checksum algorithms and parsers.
+1. Unit tests for codecs, checksums and parsers.
 2. Fixture tests against known Bitcoin Core-compatible objects.
-3. Negative tests for malformed and oversized inputs.
-4. Regression tests for every interoperability bug.
-5. Property/fuzz tests for low-level binary and text codecs.
+3. Negative tests for malformed, oversized and adversarial inputs.
+4. Regression tests for interoperability bugs.
+5. Property/fuzz tests for low-level codecs.
 6. Build, lint and typecheck in CI.
 
 ## Module acceptance criteria
@@ -131,4 +133,4 @@ A new analyzer is accepted only when it has:
 - explicit error and warning states;
 - fixtures and negative tests;
 - input size limits;
-- README/TODO/ROADMAP updates.
+- README, TODO, ROADMAP and CHANGELOG updates.
