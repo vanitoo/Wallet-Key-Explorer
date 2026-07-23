@@ -1,101 +1,85 @@
-# TODO — Wallet Key Explorer
+# TODO — Public Bitcoin Object Analysis
 
 ## Product boundary
 
-Wallet Key Explorer is an offline toolkit for inspecting existing **public Bitcoin cryptographic objects**.
-
-Allowed domains:
+Allowed:
 
 - extended public keys;
-- output descriptors;
+- descriptors;
 - multisig policies;
-- Bitcoin addresses;
+- addresses;
 - scripts and witness programs;
+- raw transactions;
 - PSBT;
-- public metadata and interoperability formats.
+- public signatures and Miniscript;
+- public interoperability formats.
 
-Forbidden domains:
+Permanently forbidden:
 
-- mnemonic, entropy and seed;
+- mnemonic, entropy, seed and passphrase;
 - private keys and private extended keys;
 - wallet creation, storage or recovery;
-- derivation-path brute force;
-- balance scanning and wallet discovery;
-- signing and broadcasting.
+- derivation-path brute force and wallet discovery;
+- balance scanning;
+- signing, finalization and broadcasting;
+- custody or persistence of secrets.
 
----
+## Completed cleanup
 
-## Completed
+- [x] Remove Wallet Explorer from navigation and roadmap
+- [x] Remove Backup Center from product direction
+- [x] Remove seed/recovery/generation tasks
+- [x] Remove legacy `src/features` implementation
+- [x] Keep `src/modules` as the only feature architecture
+- [x] Rename UI concept to Multisig Policy Builder
+- [x] Rename Descriptor Explorer UI concept to Descriptor Inspector
+- [x] Define offline public-object-only scope
+- [x] Document separate responsibility of HD Wallet Explorer, Wallet Recovery Studio and Seed Split Tool
 
-- [x] Next.js application shell
-- [x] module-based `src/modules` architecture
-- [x] removal of legacy `src/features` implementation
-- [x] Multisig Builder
-- [x] P2WSH `wsh(sortedmulti(...))`
-- [x] Mainnet/Testnet policies from 2 to 5 signers
-- [x] receive/change descriptors
-- [x] Demo Mode using public test data
-- [x] Base58Check extended-key validation
-- [x] public/private extended-key type detection
-- [x] BIP-32 field inspection
-- [x] Descriptor Explorer
-- [x] Bitcoin Core descriptor checksum
-- [x] BIP-48, branch and SLIP-132 diagnostics
-- [x] Health Score
-- [x] direct Builder → Explorer handoff
-- [x] CI: typecheck, lint and build
-- [x] explicit public-object-only scope
+## P0 — foundation
 
----
-
-## P0 — foundation and tests
-
-- [ ] Move reusable Base58Check/version-byte code into a shared public-object codec
-- [ ] Add parser fixtures from Bitcoin Core-compatible descriptors
+- [ ] Move Base58Check/version-byte logic into a shared codec
+- [ ] Introduce stable diagnostic codes and severities
+- [ ] Add input size and complexity limits
+- [ ] Add parser fixtures from Bitcoin Core-compatible data
 - [ ] Add unit tests for descriptor checksum
-- [ ] Add unit tests for malformed extended keys
-- [ ] Add input size limits before parsing
-- [ ] Add structured diagnostic codes in addition to human-readable messages
+- [ ] Add negative tests for malformed extended keys
 - [ ] Add threat model and security checklist
-- [ ] Add architecture dependency checks to prevent feature-to-feature imports
+- [ ] Add dependency checks preventing cross-module internal imports
 
 ## P1 — Descriptor Inspector
 
-- [ ] Support `sh(wsh(...))`
-- [ ] Support `wpkh(...)`
-- [ ] Support `sh(wpkh(...))`
-- [ ] Support `tr(...)`
-- [ ] Support `multi(...)` and `sortedmulti(...)`
-- [ ] Recognize descriptor pairs and multipath descriptors
-- [ ] Show source-versus-normalized diff
-- [ ] Display script policy tree
-- [ ] Export normalized descriptor as text/JSON
-- [ ] Import a compatible multisig descriptor into Multisig Builder
+- [ ] `sh(wsh(...))`
+- [ ] `wpkh(...)` and `sh(wpkh(...))`
+- [ ] `tr(...)`
+- [ ] `multi(...)` and `sortedmulti(...)`
+- [ ] descriptor pairs and multipath descriptors
+- [ ] source-versus-normalized diff
+- [ ] policy tree visualization
+- [ ] JSON/TXT diagnostic export
+- [ ] import a compatible descriptor into Multisig Policy Builder
 
 ## P2 — Extended Key Inspector
 
-- [ ] Dedicated Extended Key Inspector tab
-- [ ] Decode version bytes and network
-- [ ] Display depth, parent fingerprint and child number
-- [ ] Display chain code and compressed public key
-- [ ] Explain key origin metadata separately from the key payload
-- [ ] Detect likely SLIP-132 intent
-- [ ] Convert public prefixes with explicit compatibility warnings
-- [ ] Export analysis as JSON/TXT
-- [ ] Public-data-only QR import/export
+- [ ] Dedicated tab
+- [ ] BIP-32 field breakdown
+- [ ] version bytes and network
+- [ ] SLIP-132 interpretation
+- [ ] key-origin metadata explanation
+- [ ] public-prefix conversion with warnings
+- [ ] JSON/TXT export
+- [ ] public-data-only QR import/export
 
 ## P3 — Address Inspector
 
-- [ ] Mainnet/Testnet/Regtest address parsing
+- [ ] Mainnet/Testnet/Regtest
 - [ ] Base58Check, Bech32 and Bech32m
 - [ ] P2PKH, P2SH, P2WPKH, P2WSH and P2TR
-- [ ] checksum validation
-- [ ] witness version and witness program
-- [ ] derive scriptPubKey from the supplied address
-- [ ] detect non-standard or unsupported encodings
-- [ ] explain the decoded public structure
+- [ ] witness version and program
+- [ ] derive scriptPubKey from a supplied address
+- [ ] checksum and encoding diagnostics
 
-Address Inspector only analyzes an address supplied by the user. It does not derive addresses from keys or seed and does not query balances.
+Address Inspector analyzes only an address supplied by the user. It never derives addresses from secrets and never queries balances.
 
 ## P4 — Script Inspector
 
@@ -107,34 +91,49 @@ Address Inspector only analyzes an address supplied by the user. It does not der
 - [ ] redeemScript/witnessScript analysis
 - [ ] standardness warnings
 - [ ] script hash calculation
-- [ ] scriptPubKey comparison tools
+- [ ] scriptPubKey comparison
 
-## P5 — PSBT Inspector
+## P5 — Transaction Inspector
 
-Read-only analysis. No signing, finalization or broadcasting.
+- [ ] raw transaction hex import
+- [ ] version, vin, vout and locktime
+- [ ] sequence and RBF diagnostics
+- [ ] SegWit/Taproot recognition
+- [ ] weight and virtual size
+- [ ] script and witness breakdown
+- [ ] read-only fee analysis when prevout data is supplied
 
-- [ ] File/Base64/hex import
-- [ ] PSBT v0
-- [ ] PSBT v2
+## P6 — PSBT Inspector
+
+Read-only only. No signing, finalization or broadcasting.
+
+- [ ] Base64/hex/file import
+- [ ] PSBT v0 and v2
 - [ ] global/input/output maps
-- [ ] transaction inputs and outputs
-- [ ] UTXO information
-- [ ] amounts, fee and fee rate
+- [ ] UTXO, amount, fee and fee-rate diagnostics
 - [ ] BIP-32 derivation metadata
 - [ ] required, present and missing signatures
-- [ ] unknown and proprietary fields
+- [ ] unknown/proprietary fields
 - [ ] duplicate/conflicting field detection
-- [ ] JSON/TXT diagnostic report
+- [ ] JSON/TXT report
 
-## P6 — interoperability formats
+## P7 — Signature and Miniscript Inspectors
 
-- [ ] Bitcoin Core descriptor text
-- [ ] Sparrow public descriptor import/export
+- [ ] DER ECDSA parsing
+- [ ] Schnorr signature parsing
+- [ ] sighash decoding
+- [ ] canonical encoding diagnostics
+- [ ] Miniscript parse and type-check
+- [ ] policy-to-Miniscript visualization
+
+## P8 — interoperability
+
+- [ ] Bitcoin Core descriptor fixtures
+- [ ] Sparrow public descriptor interchange
 - [ ] Specter public configuration import
 - [ ] Caravan public configuration import
-- [ ] generic JSON report schema
-- [ ] compatibility fixtures and regression tests
-- [ ] never claim compatibility without executable fixtures
+- [ ] generic report schema
+- [ ] executable compatibility matrix
 
 ## Quality gates
 
@@ -144,17 +143,3 @@ Read-only analysis. No signing, finalization or broadcasting.
 - [ ] dependency and supply-chain review
 - [ ] performance limits for large PSBT/script inputs
 - [ ] independent security review before 1.0
-
-## Permanently out of scope
-
-- BIP-39 mnemonic/passphrase
-- entropy and seed
-- master/private key derivation
-- xprv and private-key handling
-- wallet/account creation
-- wallet recovery
-- derivation-path scanning
-- address generation from secrets
-- balance and transaction-history lookup
-- signing, finalization and broadcasting
-- custody, persistence or backup of wallet secrets
