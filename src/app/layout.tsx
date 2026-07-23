@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Wallet Key Explorer",
-  description: "Offline Bitcoin wallet key, descriptor and multisig exploration tools.",
+  description: "Offline inspection and validation tools for public Bitcoin cryptographic objects.",
   applicationName: "Wallet Key Explorer",
 };
 
