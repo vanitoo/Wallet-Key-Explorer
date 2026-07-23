@@ -11,26 +11,26 @@ type PolicyPreset = { threshold: number; total: number; title: string; descripti
 type MultisigBuilderProps = { onInspectDescriptor?: (descriptor: string) => void };
 
 const POLICY_PRESETS: PolicyPreset[] = [
-  { threshold: 2, total: 3, title: "2 из 3", description: "Личный multisig: один ключ можно потерять" },
-  { threshold: 3, total: 5, title: "3 из 5", description: "Организация: устойчивость к потере двух ключей" },
-  { threshold: 2, total: 2, title: "2 из 2", description: "Совместный кошелёк: нужны оба участника" },
+  { threshold: 2, total: 3, title: "2 из 3", description: "Устойчивая политика: один ключ можно потерять" },
+  { threshold: 3, total: 5, title: "3 из 5", description: "Организационная политика: допустима потеря двух ключей" },
+  { threshold: 2, total: 2, title: "2 из 2", description: "Совместная политика: нужны оба подписанта" },
 ];
 
 const DEMO_SIGNERS: Signer[] = [
   {
-    name: "Demo Hardware Wallet",
+    name: "Demo Signer A",
     fingerprint: "A1B2C3D4",
     derivation: "48'/0'/0'/2'",
     xpub: "xpub6EB6pKQpw8rkV9vSyJuYzV6vakw6hpMNM8QAnAkcKdmgZaw6anqKTEMdUyCxLDqd6s7wVcAw6z8pbHfjWuwFpSauwPpHtTik1edkbujfpcJ",
   },
   {
-    name: "Demo Mobile Signer",
+    name: "Demo Signer B",
     fingerprint: "B2C3D4E5",
     derivation: "48'/0'/0'/2'",
     xpub: "xpub6F13r8guZsX5ghqgUQrqDwFi8FgMPsqxnnBouVSUdLfSUhsPHjj2fMN4bQ3GeyEqPH58WwgCNVRxMmYbMVHztjtoDVtiy9rLY94itdDowQj",
   },
   {
-    name: "Demo Backup Signer",
+    name: "Demo Signer C",
     fingerprint: "C3D4E5F6",
     derivation: "48'/0'/0'/2'",
     xpub: "xpub6ENRsBZcqTQrNpY2h5LPAEjFxiuUp9noypWrmMhgFXpdBpnbQUMWRGwGuadCbKT85bzYwC731xs76cUuQKDLExtYoRo3mGCNJYF3XKK4zFL",
@@ -175,12 +175,10 @@ export function MultisigBuilder({ onInspectDescriptor }: MultisigBuilderProps) {
 
   const descriptors = useMemo(() => {
     if (!descriptorsReady) return { receive: "", change: "" };
-
     const buildDescriptor = (branch: 0 | 1): string => {
       const keys = signers.map((signer) => `[${normalizeFingerprint(signer.fingerprint)}/${normalizePath(signer.derivation)}]${signer.xpub.trim()}/${branch}/*`);
       return `wsh(sortedmulti(${threshold},${keys.join(",")}))`;
     };
-
     return { receive: buildDescriptor(0), change: buildDescriptor(1) };
   }, [descriptorsReady, signers, threshold]);
 
@@ -197,29 +195,20 @@ export function MultisigBuilder({ onInspectDescriptor }: MultisigBuilderProps) {
     onInspectDescriptor(descriptor);
   }
 
-  const emptyDescriptorMessage = singleSignatureBlocked
-    ? "Подтвердите риск схемы 1-of-N"
-    : "Заполните корректные публичные данные всех подписантов";
+  const emptyDescriptorMessage = singleSignatureBlocked ? "Подтвердите риск схемы 1-of-N" : "Заполните корректные публичные данные всех подписантов";
 
   return (
     <section className="workspace multisig-workspace">
       <div className="panel input-panel">
-        <div className="section-title"><span>01</span><div><h2>Политика кошелька</h2><p>Bitcoin P2WSH multisig с descriptor формата sortedmulti</p></div></div>
+        <div className="section-title"><span>01</span><div><h2>Multisig policy</h2><p>Конструктор публичного P2WSH descriptor формата sortedmulti</p></div></div>
 
         <div className="generation-actions">
           <button type="button" onClick={loadDemoMode}>Загрузить Demo 2 из 3</button>
           <button type="button" onClick={clearConfiguration}>Очистить</button>
-          {POLICY_PRESETS.map((preset) => (
-            <button key={preset.title} type="button" onClick={() => applyPreset(preset)} title={preset.description}>{preset.title}</button>
-          ))}
+          {POLICY_PRESETS.map((preset) => <button key={preset.title} type="button" onClick={() => applyPreset(preset)} title={preset.description}>{preset.title}</button>)}
         </div>
 
-        {demoMode && (
-          <div className="status">
-            <strong>Demo Mode включён.</strong>
-            <p>Загружены три искусственных публичных ключа только для проверки интерфейса. Не отправляйте Bitcoin на адреса этой конфигурации.</p>
-          </div>
-        )}
+        {demoMode && <div className="status"><strong>Demo Mode включён.</strong><p>Загружены искусственные публичные ключи только для проверки анализатора. Они не представляют пользовательские секреты или реальную конфигурацию.</p></div>}
 
         <div className="multisig-policy-grid">
           <label>Сеть<select value={network} onChange={(event) => changeNetwork(event.target.value as Network)}><option value="mainnet">Bitcoin Mainnet</option><option value="testnet">Bitcoin Testnet</option></select></label>
@@ -227,67 +216,41 @@ export function MultisigBuilder({ onInspectDescriptor }: MultisigBuilderProps) {
           <label>Нужно подписей<select value={threshold} onChange={(event) => changeThreshold(Number(event.target.value))}>{Array.from({ length: total }, (_, index) => index + 1).map((count) => <option key={count} value={count}>{count} из {total}</option>)}</select></label>
         </div>
 
-        {threshold === 1 && total > 1 && (
-          <div className="status error">
-            <strong>1 из {total} почти не даёт преимуществ multisig.</strong>
-            <p>Любой один ключ сможет потратить средства. Используйте такую схему только осознанно.</p>
-            <label><input type="checkbox" checked={allowSingleSignature} onChange={(event) => setAllowSingleSignature(event.target.checked)} /> Я понимаю риск и разрешаю создать descriptor</label>
-          </div>
-        )}
+        {threshold === 1 && total > 1 && <div className="status error"><strong>1 из {total} почти не даёт преимуществ multisig.</strong><p>Любой один ключ удовлетворяет политике. Используйте такую схему только осознанно.</p><label><input type="checkbox" checked={allowSingleSignature} onChange={(event) => setAllowSingleSignature(event.target.checked)} /> Я понимаю риск и разрешаю создать descriptor</label></div>}
 
-        {allSignaturesRequired && (
-          <div className="status">
-            <strong>Для {threshold} из {total} нужны все ключи.</strong> Потеря или недоступность любого signer навсегда заблокирует расходы.
-          </div>
-        )}
+        {allSignaturesRequired && <div className="status"><strong>Для {threshold} из {total} нужны все ключи.</strong> Недоступность любого signer делает политику невыполнимой.</div>}
 
-        <div className="section-title settings-title"><span>02</span><div><h2>Публичные ключи подписантов</h2><p>Seed-фразы и приватные ключи сюда вводить нельзя</p></div></div>
-        {duplicateXpubs && <div className="status error">У двух или более подписантов одинаковый extended public key. Descriptor заблокирован.</div>}
-        {duplicateFingerprints && <div className="status">У подписантов совпадают fingerprint. Это предупреждение, а не доказательство дубликата ключа.</div>}
+        <div className="section-title settings-title"><span>02</span><div><h2>Публичные данные подписантов</h2><p>Принимаются только fingerprints, origins и extended public keys</p></div></div>
+        {duplicateXpubs && <div className="status error">Обнаружены одинаковые extended public keys. Генерация descriptor заблокирована.</div>}
+        {duplicateFingerprints && <div className="status">У подписантов совпадают fingerprint. Это предупреждение, а не доказательство одинаковых ключей.</div>}
 
         <div className="signer-list">
-          {signers.map((signer, index) => (
-            <article className="signer-card" key={index}>
-              <div className="signer-heading"><strong>{signer.name || `Signer ${index + 1}`}</strong><span>{index + 1} / {total}</span></div>
-              <label>Название<input value={signer.name} onChange={(event) => updateSigner(index, { name: event.target.value })} /></label>
-              <div className="signer-meta-grid">
-                <label>Master fingerprint<input value={signer.fingerprint} onChange={(event) => updateSigner(index, { fingerprint: normalizeFingerprint(event.target.value) })} placeholder="A1B2C3D4" /></label>
-                <label>Путь деривации<input value={signer.derivation} onChange={(event) => updateSigner(index, { derivation: event.target.value })} placeholder={defaultDerivation(network)} /></label>
-              </div>
-              <label>Extended public key<textarea value={signer.xpub} onChange={(event) => updateSigner(index, { xpub: event.target.value.trim() })} placeholder={network === "mainnet" ? "xpub... / zpub..." : "tpub... / vpub..."} spellCheck={false} /></label>
-              {!signerErrors[index] && keyStatuses[index]?.prefix && <small>{keyStatuses[index].prefix} · depth {keyStatuses[index].depth} · checksum корректен</small>}
-              {signerErrors[index] && <small className="field-error">{signerErrors[index]}</small>}
-            </article>
-          ))}
+          {signers.map((signer, index) => <article className="signer-card" key={index}>
+            <div className="signer-heading"><strong>{signer.name || `Signer ${index + 1}`}</strong><span>{index + 1} / {total}</span></div>
+            <label>Название<input value={signer.name} onChange={(event) => updateSigner(index, { name: event.target.value })} /></label>
+            <div className="signer-meta-grid">
+              <label>Master fingerprint<input value={signer.fingerprint} onChange={(event) => updateSigner(index, { fingerprint: normalizeFingerprint(event.target.value) })} placeholder="A1B2C3D4" /></label>
+              <label>Путь деривации<input value={signer.derivation} onChange={(event) => updateSigner(index, { derivation: event.target.value })} placeholder={defaultDerivation(network)} /></label>
+            </div>
+            <label>Extended public key<textarea value={signer.xpub} onChange={(event) => updateSigner(index, { xpub: event.target.value.trim() })} placeholder={network === "mainnet" ? "xpub... / zpub..." : "tpub... / vpub..."} spellCheck={false} /></label>
+            {!signerErrors[index] && keyStatuses[index]?.prefix && <small>{keyStatuses[index].prefix} · depth {keyStatuses[index].depth} · checksum корректен</small>}
+            {signerErrors[index] && <small className="field-error">{signerErrors[index]}</small>}
+          </article>)}
         </div>
 
-        <div className="section-title settings-title"><span>03</span><div><h2>Wallet descriptors</h2><p>Receive и change descriptors необходимо сохранять вместе</p></div></div>
+        <div className="section-title settings-title"><span>03</span><div><h2>Output descriptors</h2><p>Публичные receive и change branches анализируются отдельно</p></div></div>
 
-        <div className="descriptor-output">
-          <strong>Receive descriptor · /0/*</strong>
-          <pre>{descriptors.receive || emptyDescriptorMessage}</pre>
-          <div className="generation-actions">
-            <button disabled={!descriptors.receive} onClick={() => copyDescriptor("receive")}>{copiedBranch === "receive" ? "Скопировано" : "Копировать receive descriptor"}</button>
-            <button disabled={!descriptors.receive || !onInspectDescriptor} onClick={() => inspectDescriptor("receive")}>Проверить receive в Explorer</button>
-          </div>
-        </div>
+        <div className="descriptor-output"><strong>Receive descriptor · /0/*</strong><pre>{descriptors.receive || emptyDescriptorMessage}</pre><div className="generation-actions"><button disabled={!descriptors.receive} onClick={() => copyDescriptor("receive")}>{copiedBranch === "receive" ? "Скопировано" : "Копировать receive descriptor"}</button><button disabled={!descriptors.receive || !onInspectDescriptor} onClick={() => inspectDescriptor("receive")}>Проверить receive в Inspector</button></div></div>
 
-        <div className="descriptor-output">
-          <strong>Change descriptor · /1/*</strong>
-          <pre>{descriptors.change || emptyDescriptorMessage}</pre>
-          <div className="generation-actions">
-            <button disabled={!descriptors.change} onClick={() => copyDescriptor("change")}>{copiedBranch === "change" ? "Скопировано" : "Копировать change descriptor"}</button>
-            <button disabled={!descriptors.change || !onInspectDescriptor} onClick={() => inspectDescriptor("change")}>Проверить change в Explorer</button>
-          </div>
-        </div>
+        <div className="descriptor-output"><strong>Change descriptor · /1/*</strong><pre>{descriptors.change || emptyDescriptorMessage}</pre><div className="generation-actions"><button disabled={!descriptors.change} onClick={() => copyDescriptor("change")}>{copiedBranch === "change" ? "Скопировано" : "Копировать change descriptor"}</button><button disabled={!descriptors.change || !onInspectDescriptor} onClick={() => inspectDescriptor("change")}>Проверить change в Inspector</button></div></div>
       </div>
 
       <aside className="panel algorithm-panel">
         <div className="algorithm-symbol">⌘</div><h3>{threshold} из {total}</h3>
-        <ul className="check-list"><li>Base58Check checksum проверяется</li><li>Receive использует ветку /0/*</li><li>Change использует ветку /1/*</li><li>{allSignaturesRequired ? "Потеря одного ключа блокирует кошелёк" : `Можно потерять ${total - threshold} ключ${total - threshold === 1 ? "" : "а"}`}</li></ul>
+        <ul className="check-list"><li>Base58Check checksum проверяется</li><li>Receive использует ветку /0/*</li><li>Change использует ветку /1/*</li><li>{allSignaturesRequired ? "Нужны все публичные ключи политики" : `Политика допускает недоступность ${total - threshold} ключ${total - threshold === 1 ? "а" : "ей"}`}</li></ul>
         <div className="algorithm-metrics"><div><span>Порог</span><strong>{threshold}</strong></div><div><span>Ключей</span><strong>{total}</strong></div></div>
-        <div className="multisig-warning"><strong>Важно</strong><p>Сохраняйте оба descriptor. Без change descriptor кошелёк может некорректно распознавать сдачу при восстановлении.</p></div>
-        <div className="flow-diagram"><span>{total} независимых ключа</span><b>↓</b><span>{threshold} подписей</span><b>↓</b><span>P2WSH multisig</span></div>
+        <div className="multisig-warning"><strong>Граница инструмента</strong><p>Компонент формирует и анализирует только публичный descriptor. Он не создаёт ключи, не хранит секреты и не подписывает транзакции.</p></div>
+        <div className="flow-diagram"><span>{total} публичных ключа</span><b>↓</b><span>{threshold} подписей</span><b>↓</b><span>P2WSH policy</span></div>
       </aside>
     </section>
   );
