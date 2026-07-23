@@ -1,105 +1,88 @@
 # Changelog
 
-Все заметные изменения Wallet Key Explorer фиксируются в этом файле.
+Все заметные изменения проекта фиксируются в этом файле.
 
-Формат основан на Keep a Changelog, версии проекта следуют Semantic Versioning.
+Формат основан на Keep a Changelog, версии следуют Semantic Versioning.
 
 ## [Unreleased]
 
 ### Planned
 
-- shared public-object codecs and stable diagnostic codes;
-- parser tests and security limits;
+- shared public-object codecs and stable diagnostics;
+- parser tests, fuzzing and security limits;
 - additional descriptor types;
-- Extended Key Inspector;
-- Address Inspector;
-- Script Inspector;
-- read-only PSBT Inspector.
+- Extended Key, Address, Script, Transaction and PSBT Inspectors;
+- Signature and Miniscript inspection.
 
 ## [0.4.0] — 2026-07-23
 
-### Changed
+### Breaking changes
 
 - назначение проекта закреплено как анализ существующих публичных криптографических объектов Bitcoin;
-- runtime и metadata больше не позиционируют приложение как wallet explorer или wallet-management tool;
-- `src/modules` закреплён как единственная feature-архитектура;
-- README и TODO полностью перестроены вокруг extended keys, descriptors, multisig policies, addresses, scripts и PSBT;
-- версия проекта повышена до 0.4.0.
+- wallet lifecycle, seed handling and recovery workflows окончательно исключены из проекта;
+- дальнейшее переименование репозитория вынесено в отдельный этап.
 
 ### Removed
 
-- старая дублирующая реализация Multisig Builder из `src/features/multisig`;
 - Wallet Explorer из интерфейса и плана развития;
-- публичный Backup Center как отдельная wallet-oriented подсистема;
-- задачи по хранению, восстановлению и экспорту пользовательских wallet packages;
-- seed, mnemonic, wallet generation, recovery, balance scanning, signing и broadcasting из границ проекта.
+- Backup Center и wallet-package export из product direction;
+- задачи по seed, mnemonic, entropy, wallet generation and recovery;
+- derivation-path scanning, balance discovery, signing and broadcasting из границ проекта;
+- legacy `src/features` implementation после миграции в `src/modules`;
+- wallet-management формулировки из metadata и главного интерфейса.
 
-### Added
+### Changed
 
-- `ARCHITECTURE.md` с правилами модулей, зависимостей, парсинга и security boundary;
-- `ROADMAP.md` с этапами развития до v1.0;
-- строгий список permanently out-of-scope возможностей;
-- целевая архитектура для Extended Key, Address, Script и PSBT Inspectors.
+- `src/modules` закреплён как единственная feature-архитектура;
+- Multisig Builder позиционируется как **Multisig Policy Builder**;
+- Descriptor Explorer позиционируется как **Descriptor Inspector**;
+- README, TODO, ROADMAP и ARCHITECTURE перестроены вокруг extended keys, descriptors, multisig policies, addresses, scripts, transactions, PSBT, signatures and Miniscript;
+- UI подчёркивает режим `PUBLIC OBJECTS ONLY`;
+- версия интерфейса повышена до 0.4.0.
 
 ### Security
 
-- приватные ключи, private extended keys, mnemonic, seed и signing workflows определены как запрещённые входные домены;
+- mnemonic, seed, entropy, WIF and private extended keys определены как запрещённые входные домены;
+- private object detection разрешён только для безопасного отказа;
 - core analyzers закреплены как offline-first и network-independent;
-- новые модули обязаны иметь input limits, negative tests и явные diagnostics.
+- новые модули обязаны иметь input limits, negative tests and explicit diagnostics.
 
 ## [0.3.0] — 2026-07-22
 
 ### Added
 
-- рабочая вкладка Descriptor Explorer;
-- импорт `wsh(sortedmulti(...))` descriptor;
+- рабочий Descriptor Explorer;
+- импорт `wsh(sortedmulti(...))`;
 - Bitcoin Core descriptor checksum;
-- проверка существующего checksum;
-- автоматическое добавление или исправление checksum;
-- разбор threshold, количества ключей, fingerprints, origin paths и branches;
-- определение mainnet, testnet, mixed и unknown network;
+- threshold, fingerprints, origins and branches;
+- network, BIP-48, branch and SLIP-132 diagnostics;
 - Health Score;
-- обнаружение дубликатов extended public key;
-- предупреждение о совпадающих fingerprints;
-- предупреждения для `1-of-N` и `N-of-N`;
-- компактный и форматированный вывод descriptor;
-- Demo Mode с искусственной конфигурацией `2-of-3`;
-- проверка BIP-48 paths, branches и SLIP-132 compatibility;
-- прямая передача descriptor из Multisig Builder в Descriptor Explorer.
+- Demo Mode на искусственных public keys;
+- direct Multisig Builder → Descriptor Explorer handoff.
 
 ### Changed
 
-- декоративная вкладка Descriptor Explorer заменена рабочим инструментом;
-- состояние Builder и Explorer сохраняется при переключении вкладок.
+- состояние инструментов сохраняется при переключении вкладок.
 
 ## [0.2.0] — 2026-07-22
 
 ### Added
 
-- Base58Check-разбор extended public keys;
-- checksum и version-byte validation;
+- Base58Check extended-key parsing;
+- checksum and version-byte validation;
 - `xpub`, `ypub`, `zpub`, `tpub`, `upub`, `vpub`;
-- отклонение private extended keys;
+- rejection of private extended keys;
 - BIP-32 field inspection;
-- fingerprint и key-origin validation;
-- multisig presets;
-- receive/change descriptors;
+- multisig presets and receive/change descriptors;
 - GitHub Actions.
-
-### Security
-
-- private extended keys отклоняются до генерации descriptor;
-- descriptor блокируется при duplicate extended public keys;
-- совпадающие fingerprints показываются как предупреждение.
 
 ## [0.1.0] — 2026-07-22
 
 ### Added
 
-- отдельный Next.js-репозиторий;
-- Multisig Builder;
-- Bitcoin Mainnet и Testnet;
-- N-of-M policies для 2–5 signer-ов;
-- ввод public fingerprint, origin path и extended public key;
-- генерация `wsh(sortedmulti(...))`;
-- базовые проверки и копирование descriptor.
+- Next.js application;
+- initial Multisig Builder;
+- Mainnet and Testnet;
+- N-of-M policies for 2–5 signers;
+- public fingerprint, origin path and extended public key input;
+- `wsh(sortedmulti(...))` generation.
