@@ -14,6 +14,7 @@
   },
   "include": [
     "src/modules/common/lib/extended-key.ts",
+    "src/modules/descriptor/lib/descriptor.ts",
     "tests/**/*.test.ts"
   ],
   "exclude": [
