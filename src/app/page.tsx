@@ -26,16 +26,16 @@ export default function Home() {
     <main className="shell">
       <section className="hero">
         <div>
-          <span className="eyebrow">LOCAL · OFFLINE · PUBLIC DATA ONLY</span>
+          <span className="eyebrow">LOCAL · OFFLINE · PUBLIC OBJECTS ONLY</span>
           <h1>Wallet Key Explorer</h1>
-          <p>Инструменты для анализа публичных криптографических объектов Bitcoin: extended keys, descriptors, multisig policies, scripts и PSBT.</p>
+          <p>Набор инструментов для анализа публичных объектов Bitcoin: extended keys, descriptors, multisig policies, scripts, PSBT и связанных форматов.</p>
         </div>
         <div className="offline-pill"><span /> Сеть не используется</div>
       </section>
 
       <div className="tabs main-tabs">
-        <button className={activeTab === "multisig" ? "active" : ""} onClick={() => setActiveTab("multisig")}>Multisig Builder</button>
-        <button className={activeTab === "descriptor" ? "active" : ""} onClick={() => setActiveTab("descriptor")}>Descriptor Explorer</button>
+        <button className={activeTab === "multisig" ? "active" : ""} onClick={() => setActiveTab("multisig")}>Multisig Policy Builder</button>
+        <button className={activeTab === "descriptor" ? "active" : ""} onClick={() => setActiveTab("descriptor")}>Descriptor Inspector</button>
       </div>
 
       <div hidden={activeTab !== "multisig"}>
@@ -49,7 +49,7 @@ export default function Home() {
         />
       </div>
 
-      <footer className="app-footer"><span>Wallet Key Explorer</span><span>v0.3.0 · Public Bitcoin Object Analysis · MIT</span></footer>
+      <footer className="app-footer"><span>Wallet Key Explorer</span><span>v0.4.0 · Public Bitcoin Object Analysis · MIT</span></footer>
     </main>
   );
 }
