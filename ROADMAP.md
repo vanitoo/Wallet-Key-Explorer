@@ -8,7 +8,7 @@ It will not expand into seed handling, wallet creation or recovery, balance disc
 
 ## v0.4 — cleanup and scope baseline
 
-Status: current.
+Status: completed.
 
 - remove migrated wallet-oriented functionality and plans;
 - establish `src/modules` as the only feature architecture;
@@ -20,20 +20,33 @@ Status: current.
 
 ## v0.5 — parser foundation
 
+Status: completed.
+
 - shared Base58Check and version-byte codec;
-- stable diagnostic model;
-- input-size and complexity limits;
-- descriptor checksum fixtures;
-- extended-key and descriptor parser tests;
-- regression test suite;
-- threat model.
+- ES2020-safe typecheck configuration;
+- ESLint 9 flat configuration;
+- extended-key parser tests;
+- descriptor checksum and parser tests;
+- regression test suite included in `npm run check`.
 
 ## v0.6 — Descriptor Inspector expansion
+
+Status: current.
+
+Completed baseline:
+
+- Descriptor Inspector v2 for strict `wsh(sortedmulti(...))` analysis;
+- checksum status and normalization;
+- key-origin, network and wildcard branch diagnostics;
+- private extended-key rejection;
+- receive/change/custom branch classification.
+
+Next:
 
 - `sh(wsh(...))`;
 - `wpkh(...)` and `sh(wpkh(...))`;
 - `tr(...)`;
-- `multi(...)` and `sortedmulti(...)`;
+- `multi(...)` and additional descriptor forms;
 - descriptor pairs and multipath descriptors;
 - source/normalized diff;
 - policy visualization;
