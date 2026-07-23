@@ -38,12 +38,13 @@ Permanently forbidden:
 
 ## P0 — foundation
 
-- [ ] Move Base58Check/version-byte logic into a shared codec
+- [x] Move Base58Check/version-byte logic into a shared codec
 - [ ] Introduce stable diagnostic codes and severities
 - [ ] Add input size and complexity limits
 - [ ] Add parser fixtures from Bitcoin Core-compatible data
 - [ ] Add unit tests for descriptor checksum
-- [ ] Add negative tests for malformed extended keys
+- [x] Add positive and negative unit tests for extended-key codec
+- [x] Add negative tests for malformed extended keys
 - [ ] Add threat model and security checklist
 - [ ] Add dependency checks preventing cross-module internal imports
 
@@ -61,13 +62,14 @@ Permanently forbidden:
 
 ## P2 — Extended Key Inspector
 
-- [ ] Dedicated tab
-- [ ] BIP-32 field breakdown
-- [ ] version bytes and network
-- [ ] SLIP-132 interpretation
+- [x] Dedicated tab
+- [x] BIP-32 field breakdown
+- [x] version bytes and network
+- [x] SLIP-132 interpretation
+- [x] JSON export
 - [ ] key-origin metadata explanation
 - [ ] public-prefix conversion with warnings
-- [ ] JSON/TXT export
+- [ ] TXT export
 - [ ] public-data-only QR import/export
 
 ## P3 — Address Inspector
