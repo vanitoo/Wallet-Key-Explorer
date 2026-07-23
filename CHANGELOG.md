@@ -4,9 +4,16 @@
 
 ## [Unreleased]
 
+### Added
+
+- unit-test infrastructure based on TypeScript and the built-in Node.js test runner;
+- positive coverage for BIP-32 fields of a valid mainnet `xpub`;
+- compact validation-result coverage used by Multisig Policy Builder;
+- negative coverage for malformed Base58, damaged checksum, unknown version bytes and private extended keys;
+- codec tests are now part of `npm run check` and GitHub Actions CI.
+
 ### Planned
 
-- unit tests for the shared extended-key codec;
 - Descriptor Inspector v2;
 - Address Inspector;
 - Script Inspector;
