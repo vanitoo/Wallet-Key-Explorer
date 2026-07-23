@@ -58,7 +58,8 @@ function decodeBase58(value: string): Uint8Array {
 }
 
 async function sha256(data: Uint8Array): Promise<Uint8Array> {
-  return new Uint8Array(await crypto.subtle.digest("SHA-256", data));
+  const stableBuffer = Uint8Array.from(data).buffer;
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", stableBuffer));
 }
 
 function readUint32(bytes: Uint8Array, offset: number): number {
@@ -100,8 +101,16 @@ export async function inspectExtendedKey(value: string): Promise<ExtendedKeyInsp
     if (info.kind === "public" && (keyData[0] !== 0x02 && keyData[0] !== 0x03)) {
       return { valid: false, error: "Extended public key должен содержать сжатый secp256k1 public key" };
     }
-    if (info.kind === "private" && keyData[0] !== 0x00) {
-      return { valid: false, error: "Некорректный payload private extended key" };
+    if (info.kind === "private") {
+      return {
+        valid: false,
+        error: `Приватный extended key ${info.prefix} вводить нельзя`,
+        prefix: info.prefix,
+        network: info.network,
+        kind: info.kind,
+        versionHex: `0x${version.toString(16).padStart(8, "0").toUpperCase()}`,
+        warning: "Private extended keys are rejected by project policy. Do not paste secret material into this application.",
+      };
     }
 
     return {
@@ -118,7 +127,6 @@ export async function inspectExtendedKey(value: string): Promise<ExtendedKeyInsp
       chainCode: toHex(chainCode),
       keyData: toHex(keyData),
       slip132Meaning: info.meaning,
-      warning: info.kind === "private" ? "Private extended keys are rejected by project policy. Do not paste secret material into this application." : undefined,
     };
   } catch (error) {
     return { valid: false, error: error instanceof Error ? error.message : "Не удалось разобрать extended key" };
@@ -126,8 +134,5 @@ export async function inspectExtendedKey(value: string): Promise<ExtendedKeyInsp
 }
 
 export async function validateExtendedPublicKey(value: string): Promise<ExtendedKeyInspection> {
-  const result = await inspectExtendedKey(value);
-  if (!result.valid) return result;
-  if (result.kind === "private") return { ...result, valid: false, error: `Приватный extended key ${result.prefix} вводить нельзя` };
-  return result;
+  return inspectExtendedKey(value);
 }
